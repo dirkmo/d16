@@ -1,0 +1,43 @@
+dsp:
+00
+01 ds++
+10 ds--
+11 ds-=2
+--> ds 2 bits
+
+rsp:
+0
+1 rs--
+--> 1 bit
+
+dst:
+000
+001  R[rs] <= bus, rs++
+010  D[ds] <= bus
+011     ds <= bus
+100     pc <= bus
+101 mem[T] <= bus
+110     rs <= bus
+111 T <= N, N <= T
+--> 3 bits
+
+src:
+000 bus = R[rs-1]
+001 bus = D[ds-1] = T
+010 bus = pc+1 (oder pc?)
+011 bus = ds
+100 bus = mem[T]
+101 bus = alu
+110 
+111 
+--> 3 bits
+
+Alu ; Wenn Alu, dann immer Bustreiber = Alu, Ziel = D[ds-2], ds--
+-> 4 bits
+
+conditions:
+00 none
+01 zero
+10 neg
+11 carry
+--> 2 bits
