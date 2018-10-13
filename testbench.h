@@ -98,7 +98,7 @@ public:
     uint32_t addr;
     bool cyc;
     bool we;
-    bool ack;
+    bool ack = true;
     bool err;
     uint16_t dat;
 };
@@ -106,11 +106,9 @@ public:
 class Memory16 {
 public:
     uint16_t *mem = NULL;
-    uint16_t size;
     
     Memory16(uint16_t size) {
         mem = new uint16_t[size];
-        this->size = size;
     }
 
     ~Memory16() {
@@ -118,22 +116,19 @@ public:
     }
 
     void write(uint16_t addr, uint16_t *dat, uint16_t len) {
-        assert(addr + len < size);
         while(len--) {
             mem[addr++] = *dat++;
         }
     }
 
 	uint16_t read(uint16_t addr) {
-		assert(addr < size);
 		return mem[addr];
 	}
 
     void task(bool sel, Wishbone16 *bus) {
         if( sel ) {
             if( bus->cyc ) {
-                uint32_t addr = bus->addr - (bus->addr%4);
-                assert( bus->addr < size-3);
+                uint32_t addr = bus->addr;
                 if( bus->we ) {
                     mem[addr] = bus->dat;
                     printf("%lu: mem write %08X: %08X\n", tickcount(), addr, bus->dat);

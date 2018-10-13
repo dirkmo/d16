@@ -1,4 +1,4 @@
-.PHONY: all clean sim
+.PHONY: all clean sim wave
 
 UNAME := $(shell uname -s)
 
@@ -18,6 +18,9 @@ d16: d16.v d16test.cpp
 sim: d16
 	d16/Vd16
 
+wave: sim
+	gtkwave trace.vcd &
+
 clean:
 	rm -f d16/*
-	rm -r d16
+	-rm -r d16

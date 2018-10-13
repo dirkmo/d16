@@ -11,14 +11,14 @@ rsp:
 --> 1 bit
 
 dst:
-000
-001  R[rs] <= bus, rs++
-010  D[ds] <= bus
-011     ds <= bus
-100     pc <= bus
-101 mem[T] <= bus
-110     rs <= bus
-111 T <= N, N <= T
+000    R[rs] <= bus, rs++
+001    D[ds] <= bus
+010  D[ds-1] <= bus
+011  D[ds-2] <= bus
+100       ds <= bus
+101       pc <= bus
+110   mem[T] <= bus
+111       rs <= bus 
 --> 3 bits
 
 src:

@@ -51,7 +51,11 @@ reg [15:0] ir;
 
 reg [3:0] flags;
 
-reg execute;
+`define CPUSTATE_RESET 2'b00
+`define CPUSTATE_FETCH 2'b01
+`define CPUSTATE_EXECUTE 2'b10
+
+reg [1:0] cpu_state;
 
 
 // instruction bit decoding
@@ -65,15 +69,16 @@ wire  [2:0] src   = ir[9:7];
 wire  [2:0] dst   = ir[6:4];
 wire  [3:0] aluop = ir[3:0];
 
-wire [15:0] alu = 16'd0;
+reg [15:0] alu;
 
 // wishbone bus
 reg wb_we = 0;
 reg wb_cyc = 0;
 assign o_wb_dat  = bus;
-assign o_wb_we   = execute ? wb_we   : 1'b0;
-assign o_wb_cyc  = execute ? wb_cyc  : 1'b1;
-assign o_wb_addr = execute ? D[ds_NOSidx] : pc;
+assign o_wb_we   = cpu_state == `CPUSTATE_EXECUTE ? wb_we  : 1'b0;
+assign o_wb_cyc  = cpu_state == `CPUSTATE_EXECUTE ? wb_cyc :
+                   cpu_state == `CPUSTATE_FETCH   ? 1'b1   : 1'b0;
+assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
 
 // bus source selection
 wire [15:0] bus =
@@ -89,12 +94,22 @@ wire [15:0] bus =
 // instruction fetch
 always @(posedge i_clk)
 begin
-    execute <= ~execute;
-    if( execute == 1'b0 ) begin
+    if( cpu_state == `CPUSTATE_FETCH ) begin
         ir <= i_wb_dat;
     end
-    if( i_reset ) begin
-        execute <= 1'b0;
+end
+
+// state machine
+always @(posedge i_clk)
+begin
+    case ( cpu_state )
+        `CPUSTATE_RESET:   cpu_state <= `CPUSTATE_FETCH;
+        `CPUSTATE_FETCH:   cpu_state <= `CPUSTATE_EXECUTE;
+        `CPUSTATE_EXECUTE: cpu_state <= `CPUSTATE_FETCH;
+        default: cpu_state <= `CPUSTATE_RESET;
+    endcase
+    if ( i_reset ) begin
+        cpu_state <= `CPUSTATE_RESET;
     end
 end
 
@@ -103,31 +118,31 @@ always @(posedge i_clk)
 begin
     wb_we <= 1'b0;
     wb_cyc <= 1'b0;
-    if( execute ) begin
+    if( cpu_state == `CPUSTATE_EXECUTE ) begin
         pc <= pc + 1;
         if( itype == 1'b1 ) begin
             // regular instruction
             if( flags[ cond ] == 1'b1 ) begin
+                if ( rsp ) begin
+                    rs <= rs - 1'b1;
+                end
                 case( dst )
-                    3'b000: ; // nothing
-                    3'b001: begin
+                    3'd0: begin
                         // push(R, bus)
                         R[rs_idx] <= bus;
                         rs <= rs + 1'b1;
                     end
-                    3'b010: D[ds_idx] <= bus;
-                    3'b011: ; // will be handled in D stack pointer block
-                    3'b100: pc <= bus;
-                    3'b101: begin
+                    3'd1: D[ds_idx] <= bus;
+                    3'd2: D[ds_TOSidx] <= bus;
+                    3'd3: D[ds_NOSidx] <= bus;
+                    3'd4: ; // will be handled in D stack pointer block
+                    3'd5: pc <= bus;
+                    3'd6: begin
                         // mem <= bus
                         wb_we <= 1'b1;
                         wb_cyc <= 1'b1;
                     end
-                    3'b110: rs <= { 1'b0, bus[5:0] };
-                    3'b111: begin // SWAP
-                        D[ds_TOSidx] <= D[ds_NOSidx];
-                        D[ds_NOSidx] <= D[ds_TOSidx];
-                    end
+                    3'd7: rs <= { 1'b0, bus[5:0] };
                 endcase
             end
         end else begin
@@ -135,7 +150,7 @@ begin
             D[ds_idx] <= { 1'b0, imm };
         end
     end
-    if( i_reset ) begin
+    if( cpu_state == `CPUSTATE_RESET ) begin
         pc <= 16'd0;
         rs <= 7'd0;
         ds <= 7'd0;
@@ -145,7 +160,7 @@ end
 // D stack pointer ds
 always @(posedge i_clk)
 begin
-    if( execute ) begin
+    if( cpu_state == `CPUSTATE_EXECUTE ) begin
         if( itype == 1'b1 ) begin
             if( flags[ cond ] == 1'b1 ) begin
                 case(dsp)
@@ -154,7 +169,7 @@ begin
                     2'b10: ds <= ds - 1;
                     2'b11: ds <= ds - 2;
                 endcase
-                if( dst == 3'b011 ) begin
+                if( dst == 3'd4 ) begin
                     ds <= { 1'b0, bus[5:0] };
                 end
             end
@@ -197,10 +212,10 @@ end
 
 always @(posedge i_clk)
 begin
-    if( execute ) begin
+    if( cpu_state == `CPUSTATE_EXECUTE ) begin
         flags <= { alu_carry, alu_neg, alu_zero, 1'b1 };
     end
-    if( i_reset ) begin
+    if( cpu_state == `CPUSTATE_RESET ) begin
         flags <= 4'b0001;
     end
 end
