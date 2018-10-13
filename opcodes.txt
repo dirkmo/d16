@@ -33,7 +33,21 @@ src:
 --> 3 bits
 
 Alu ; Wenn Alu, dann immer Bustreiber = Alu, Ziel = D[ds-2], ds--
+
+0: ADD
+1: ADC
+2: AND
+3: OR
+4: XOR
+5: INV
+6: LSL
+7: LSR
+8: 
+
 -> 4 bits
+
+
+
 
 conditions:
 00 none

@@ -108,12 +108,12 @@ public:
     uint16_t *mem = NULL;
     uint16_t size;
     
-    Memory(uint16_t size) {
+    Memory16(uint16_t size) {
         mem = new uint16_t[size];
         this->size = size;
     }
 
-    ~Memory() {
+    ~Memory16() {
         delete[] mem;
     }
 
@@ -129,7 +129,7 @@ public:
 		return mem[addr];
 	}
 
-    void task(bool sel, Wishbone *bus) {
+    void task(bool sel, Wishbone16 *bus) {
         if( sel ) {
             if( bus->cyc ) {
                 uint32_t addr = bus->addr - (bus->addr%4);
