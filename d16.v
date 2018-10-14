@@ -1,6 +1,6 @@
 /* verilator lint_off UNUSED */
-/* verilator lint_off UNDRIVEN */
-/* verilator lint_off PINCONNECTEMPTY */
+/* averilator lint_off UNDRIVEN */
+/* averilator lint_off PINCONNECTEMPTY */
 
 module d16(
     i_clk,
@@ -11,9 +11,7 @@ module d16(
     o_wb_cyc,
     o_wb_we,
     o_wb_dat,
-    i_wb_dat,
-    i_wb_ack,
-    i_wb_err
+    i_wb_dat
 );
 
 input i_clk;
@@ -21,8 +19,6 @@ input i_reset;
 input i_int;
 
 // wishbone wires
-input i_wb_ack;
-input i_wb_err;
 input  [15:0] i_wb_dat;
 output [15:0] o_wb_addr;
 output [15:0] o_wb_dat;

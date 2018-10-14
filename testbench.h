@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <verilated_vcd_c.h>
 #include <stdio.h>
+#include <vector>
+
+using namespace std;
 
 uint64_t* tickcounter = NULL;
 
@@ -98,8 +101,6 @@ public:
     uint32_t addr;
     bool cyc;
     bool we;
-    bool ack = true;
-    bool err;
     uint16_t dat;
 };
 
@@ -115,6 +116,17 @@ public:
         delete[] mem;
     }
 
+	void clear() {
+		memset(mem, 0, sizeof(mem));
+	}
+
+	void init(vector<uint16_t>& dat) {
+		int i = 0;
+		for( auto d: dat) {
+			mem[i++] = d;
+		}
+	}
+
     void write(uint16_t addr, uint16_t *dat, uint16_t len) {
         while(len--) {
             mem[addr++] = *dat++;
@@ -125,19 +137,18 @@ public:
 		return mem[addr];
 	}
 
-    void task(bool sel, Wishbone16 *bus) {
+    void task(bool sel, Wishbone16 &bus) {
         if( sel ) {
-            if( bus->cyc ) {
-                uint32_t addr = bus->addr;
-                if( bus->we ) {
-                    mem[addr] = bus->dat;
-                    printf("%lu: mem write %08X: %08X\n", tickcount(), addr, bus->dat);
+            if( bus.cyc ) {
+                uint32_t addr = bus.addr;
+                if( bus.we ) {
+                    mem[addr] = bus.dat;
+                    printf("%lu: mem write %08X: %08X\n", tickcount(), addr, bus.dat);
                 } else {
-                    bus->dat = 0;
-                    bus->dat = mem[addr];
-	                printf("%lu: mem read %08X: %08X\n", tickcount(), addr, bus->dat);
+                    bus.dat = 0;
+                    bus.dat = mem[addr];
+	                printf("%lu: mem read %08X: %08X\n", tickcount(), addr, bus.dat);
                 }
-                bus->ack = true;
             }
         }
     }
