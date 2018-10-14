@@ -178,8 +178,6 @@ end
 
 // alu
 reg alu_carry;
-wire alu_zero = alu == 16'd0;
-wire alu_neg  = alu[15];
 wire [15:0] T = D[ds_TOSidx];
 wire [15:0] N = D[ds_NOSidx];
 always @(*)
@@ -208,12 +206,12 @@ end
 
 always @(posedge i_clk)
 begin
-    if( cpu_state == `CPUSTATE_EXECUTE ) begin
-        flags <= { alu_carry, alu_neg, alu_zero, 1'b1 };
-    end
-    if( cpu_state == `CPUSTATE_RESET ) begin
-        flags <= 4'b0001;
-    end
+    case( cpu_state )
+        `CPUSTATE_FETCH:   flags <= { flags[3], T[15], (T == 16'd0), 1'b1 };
+        `CPUSTATE_EXECUTE: flags <= { alu_carry, T[15], (T == 16'd0), 1'b1 };
+        `CPUSTATE_RESET: flags <= 4'b0001;
+         default: flags <= flags;
+    endcase
 end
 
 endmodule

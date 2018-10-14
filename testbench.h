@@ -143,11 +143,11 @@ public:
                 uint32_t addr = bus.addr;
                 if( bus.we ) {
                     mem[addr] = bus.dat;
-                    printf("%lu: mem write %08X: %08X\n", tickcount(), addr, bus.dat);
+                    printf("%lu: mem write %04X: %04X\n", tickcount(), addr, bus.dat);
                 } else {
                     bus.dat = 0;
                     bus.dat = mem[addr];
-	                printf("%lu: mem read %08X: %08X\n", tickcount(), addr, bus.dat);
+	                printf("%lu: mem read %04X: %04X\n", tickcount(), addr, bus.dat);
                 }
             }
         }

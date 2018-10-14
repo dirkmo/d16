@@ -28,17 +28,22 @@ public:
     void print_ds() {
         printf("D: <%d> ", m_core->d16__DOT__ds);
         for ( int i=0; i<m_core->d16__DOT__ds; i++) {
-            printf("%02X ", m_core->d16__DOT__D[i]);
+            printf("%04X ", m_core->d16__DOT__D[i]);
         }
         printf("\n");
     }
 
     void print_rs() {
         printf("R: <%d> ", m_core->d16__DOT__rs);
-        for ( int i=0; i<m_core->d16__DOT__rs; i++) {
-            printf("%02X ", m_core->d16__DOT__R[i]);
+        for ( int i=0; i < m_core->d16__DOT__rs; i++) {
+            printf("%04X ", m_core->d16__DOT__R[i]);
         }
         printf("\n");
+    }
+
+    void print_flags() {
+        uint8_t flags = m_core->d16__DOT__flags;
+        printf("z:%d n:%d c:%d\n", (flags>>1)&1, (flags>>2)&1, (flags>>3)&1);
     }
 };
 
@@ -81,6 +86,10 @@ class Test {
         m_ptb->tick();
     }
 
+    bool testResults() {
+        return false;
+    }
+
     bool doTest(int idx) {
         printf("Executing test %i\n", idx);
         TestData& td = m_vTests[idx];
@@ -92,21 +101,21 @@ class Test {
         while(icount++ < 10) {
 
             if( isSimulationDone() ) {
-                printf("Simulation finished\n");
-                return false;
+                break;
             }
 
             printf("%s\n", m_ptb->m_core->d16__DOT__cpu_state == 0 ? "RESET" :
                     m_ptb->m_core->d16__DOT__cpu_state == 1 ? "FETCH" :
                     m_ptb->m_core->d16__DOT__cpu_state == 2 ? "EXECUTE" :
                     "UNKNOWN");
+            m_ptb->print_flags();
 
             doCycle();
 
             m_ptb->print_ds();
-
         }
-        return false;
+        printf("Simulation finished\n");
+        return testResults();
     }
 
     int testCount() { return m_vTests.size(); }
@@ -121,7 +130,7 @@ void setupTests(Test& tester) {
     tester.addTest(
         (TestData) {
             .cpu =  { .flags = { 0, 0, 0 }, .D = { 1, 1 }, .R = { } },
-            .prog = { 1, DUP, HALT }
+            .prog = { 0x7FFF, 0, HALT }
         }
     );
 }
