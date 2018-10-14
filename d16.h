@@ -3,26 +3,24 @@
 
 enum CONSTANTS {
     OP          = 1 << 15,
-    // conditions
-    COND_NONE   = 0 << 13,
-    COND_ZERO   = 1 << 13,
-    COND_NEG    = 2 << 13,
-    COND_CARRY  = 3 << 13,
     // data stack pointer ops
-    DSP_NONE    = 0 << 11,
-    DSP_INC     = 1 << 11,
-    DSP_DEC     = 2 << 11,
-    DSP_DEC2    = 3 << 11,
+    DSP_NONE    = 0 << 13,
+    DSP_INC     = 1 << 13,
+    DSP_DEC     = 2 << 13,
+    DSP_DEC2    = 3 << 13,
     // return stack pointer ops
-    RSP_NONE    = 0 << 10,
-    RSP_DEC     = 1 << 10,
+    RSP_NONE    = 0 << 12,
+    RSP_DEC     = 1 << 12,
     // src: bus driver
-    SRC_RTOS    = 0 << 7,
-    SRC_DTOS    = 1 << 7,
-    SRC_PC      = 2 << 7,
-    SRC_DSP     = 3 << 7,
-    SRC_MEM     = 4 << 7,
-    SRC_ALU     = 5 << 7,
+    SRC_RTOS    = 0 << 9,
+    SRC_DTOS    = 1 << 9,
+    SRC_PC      = 2 << 9,
+    SRC_DSP     = 3 << 9,
+    SRC_MEM     = 4 << 9,
+    SRC_ALU     = 5 << 9,
+    SRC_JZ      = 6 << 9, // conditional jump if zero
+    SRC_JN      = 7 << 9, // conditional jump if less than zero
+
     // dst: destination register
     DST_RS      = 0 << 4, // push return stack element
     DST_DS      = 1 << 4, // push data stack element
@@ -32,6 +30,7 @@ enum CONSTANTS {
     DST_PC      = 5 << 4, // set PC
     DST_MEM     = 6 << 4, // write memory
     DST_RSP     = 7 << 4, // set return stack pointer
+    DST_DS12    = 8 << 4, // set TOS, NOS (for NOS=alu, TOS=carry)
     // alu
     ALU_ADD     = 0 << 0,
     ALU_ADC     = 1 << 0,
@@ -41,28 +40,26 @@ enum CONSTANTS {
     ALU_INV     = 5 << 0,
     ALU_LSL     = 6 << 0,
     ALU_LSR     = 7 << 0,
+    ALU_SUB     = 8 << 0,
+    ALU_SBC     = 9 << 0,
 };
 
 /*
 [15] | [14-0]
  0   | val#
 
-[15] | [14-13] | [12-11] | [10] | [9-7] | [6-4] | [3-0]
- 1   |  cond   |   dsp   |  rsp |  src  |  dst  |  alu
+[15] | [14-13] | [12] | [11-9] |   8   | [7-4] | [3-0]
+ 1   |   dsp   |  rsp |  src   |unused | dst   |  alu
  */
 
 enum OPCODES {
-    DUP   = OP | COND_NONE  | DSP_INC | SRC_DTOS | DST_DS,
-    DUPZ  = OP | COND_ZERO  | DSP_INC | SRC_DTOS | DST_DS,
-    DUPN  = OP | COND_NEG   | DSP_INC | SRC_DTOS | DST_DS,
-    DUPC  = OP | COND_CARRY | DSP_INC | SRC_DTOS | DST_DS,
+    DUP   = OP | DSP_INC  | SRC_DTOS | DST_DS, // (n -- nn)
+    ADD   = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_ADD, // (n n -- n)
 
-    ADD   = OP | COND_NONE  | DSP_DEC | SRC_ALU  | DST_DS2 | ALU_ADD,
-    ADDZ  = OP | COND_ZERO  | DSP_DEC | SRC_ALU  | DST_DS2 | ALU_ADD,
-    ADDN  = OP | COND_NEG   | DSP_DEC | SRC_ALU  | DST_DS2 | ALU_ADD,
-    ADDC  = OP | COND_CARRY | DSP_DEC | SRC_ALU  | DST_DS2 | ALU_ADD,
+    SUB   = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_SUB, // (n n -- n)
 
-
+    JMPZ  = OP | DSP_DEC2 | SRC_JZ   | DST_PC, // (a z -- )
+    JMPL  = OP | DSP_DEC2 | SRC_JN   | DST_PC, // (a n -- )
 
     HALT = 0xFFFF
 };

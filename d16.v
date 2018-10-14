@@ -31,6 +31,8 @@ reg [15:0] D[63:0];
 wire [5:0] ds_idx = ds[5:0];
 wire [5:0] ds_TOSidx = ds_idx - 1; // D TOS index
 wire [5:0] ds_NOSidx = ds_idx - 2; // D NOS index
+wire [15:0] T = D[ds_TOSidx];
+wire [15:0] N = D[ds_NOSidx];
 
 reg [6:0] rs = 0; // Bit 6 ist Überlaufbit
 reg [15:0] R[63:0];
@@ -38,14 +40,9 @@ wire [5:0] rs_idx = rs[5:0];
 wire [5:0] rs_TOSidx = rs_idx - 1; // R TOS index
 
 reg [15:0] pc;
+wire [15:0] pc1 = pc + 1;
 
 reg [15:0] ir;
-
-`define ZERO  1
-`define NEG   2
-`define CARRY 3
-
-reg [3:0] flags;
 
 `define CPUSTATE_RESET 2'b00
 `define CPUSTATE_FETCH 2'b01
@@ -58,11 +55,11 @@ reg [1:0] cpu_state;
 wire       itype  = ir[15];
 wire [14:0]  imm  = ir[14:0];
 
-wire  [1:0] cond  = ir[14:13];
-wire  [1:0] dsp   = ir[12:11];
-wire        rsp   = ir[10];
-wire  [2:0] src   = ir[9:7];
-wire  [2:0] dst   = ir[6:4];
+wire  [1:0] dsp   = ir[14:13];
+wire        rsp   = ir[12];
+wire  [2:0] src   = ir[11:9];
+//wire       unused = ir[8];
+wire  [3:0] dst   = ir[7:4];
 wire  [3:0] aluop = ir[3:0];
 
 reg [15:0] alu;
@@ -78,14 +75,14 @@ assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
 
 // bus source selection
 wire [15:0] bus =
-        src == 3'b000 ? R[rs_TOSidx] :
-        src == 3'b001 ? D[ds_TOSidx] :
-        src == 3'b010 ? pc :
-        src == 3'b011 ? { 9'd0, ds }:
-        src == 3'b100 ? i_wb_dat :
-        src == 3'b101 ? alu :
-        src == 3'b110 ? 16'd0
-                      : 16'd0; // src == 3'b111
+        src == 3'd0 ? R[rs_TOSidx] :
+        src == 3'd1 ? T :
+        src == 3'd2 ? pc :
+        src == 3'd3 ? { 9'd0, ds }:
+        src == 3'd4 ? i_wb_dat :
+        src == 3'd5 ? alu :
+        src == 3'd6 ? T == 16'd0 ? N : pc1 // JMPZ
+                    : T[15] ? N : pc1; // JMPL
 
 // instruction fetch
 always @(posedge i_clk)
@@ -118,29 +115,32 @@ begin
         pc <= pc + 1;
         if( itype == 1'b1 ) begin
             // regular instruction
-            if( flags[ cond ] == 1'b1 ) begin
-                if ( rsp ) begin
-                    rs <= rs - 1'b1;
-                end
-                case( dst )
-                    3'd0: begin
-                        // push(R, bus)
-                        R[rs_idx] <= bus;
-                        rs <= rs + 1'b1;
-                    end
-                    3'd1: D[ds_idx] <= bus;
-                    3'd2: D[ds_TOSidx] <= bus;
-                    3'd3: D[ds_NOSidx] <= bus;
-                    3'd4: ; // will be handled in D stack pointer block
-                    3'd5: pc <= bus;
-                    3'd6: begin
-                        // mem <= bus
-                        wb_we <= 1'b1;
-                        wb_cyc <= 1'b1;
-                    end
-                    3'd7: rs <= { 1'b0, bus[5:0] };
-                endcase
+            if ( rsp ) begin
+                rs <= rs - 1'b1;
             end
+            case( dst )
+                4'd0: begin
+                    // push(R, bus)
+                    R[rs_idx] <= bus;
+                    rs <= rs + 1'b1;
+                end
+                4'd1: D[ds_idx] <= bus;
+                4'd2: D[ds_TOSidx] <= bus;
+                4'd3: D[ds_NOSidx] <= bus;
+                4'd4: ; // will be handled in D stack pointer block
+                4'd5: pc <= bus;
+                4'd6: begin
+                    // mem <= bus
+                    wb_we <= 1'b1;
+                    wb_cyc <= 1'b1;
+                end
+                4'd7: rs <= { 1'b0, bus[5:0] };
+                4'd8: begin
+                    D[ds_TOSidx] <= {15'd0, alu_carry };
+                    D[ds_NOSidx] <= bus;
+                end
+                default: ;
+            endcase
         end else begin
             // immediate instruction
             D[ds_idx] <= { 1'b0, imm };
@@ -158,16 +158,14 @@ always @(posedge i_clk)
 begin
     if( cpu_state == `CPUSTATE_EXECUTE ) begin
         if( itype == 1'b1 ) begin
-            if( flags[ cond ] == 1'b1 ) begin
-                case(dsp)
-                    2'b00: ;
-                    2'b01: ds <= ds + 1;
-                    2'b10: ds <= ds - 1;
-                    2'b11: ds <= ds - 2;
-                endcase
-                if( dst == 3'd4 ) begin
-                    ds <= { 1'b0, bus[5:0] };
-                end
+            case(dsp)
+                2'b00: ;
+                2'b01: ds <= ds + 1;
+                2'b10: ds <= ds - 1;
+                2'b11: ds <= ds - 2;
+            endcase
+            if( dst == 4'd4 ) begin
+                ds <= { 1'b0, bus[5:0] };
             end
         end else begin
             // immediate instruction
@@ -178,16 +176,13 @@ end
 
 // alu
 reg alu_carry;
-wire [15:0] T = D[ds_TOSidx];
-wire [15:0] N = D[ds_NOSidx];
 always @(*)
 begin
-    alu_carry = flags[`CARRY];
     case( aluop )
         4'd0: // ADD
-            { alu_carry, alu } = {1'b0, T } + { 1'b0, N };
+            alu = T + N;
         4'd1: // ADC
-            { alu_carry, alu } = {1'b0, T } + { 1'b0, N } + { 16'd0, flags[`CARRY] };
+            { alu_carry, alu } = {1'b0, T } + { 1'b0, N };
         4'd2: // AND
             alu = T & N;
         4'd3: // OR
@@ -200,17 +195,11 @@ begin
             alu = N << T;
         4'd7: // LSR
             alu = N >> T;
+        4'd8: // SUB
+            alu = N - T;
+        4'd9: // SBC
+            { alu_carry, alu } = { N[15], N } - { T[15], T };
         default: alu = 0;
-    endcase
-end
-
-always @(posedge i_clk)
-begin
-    case( cpu_state )
-        `CPUSTATE_FETCH:   flags <= { flags[3], T[15], (T == 16'd0), 1'b1 };
-        `CPUSTATE_EXECUTE: flags <= { alu_carry, T[15], (T == 16'd0), 1'b1 };
-        `CPUSTATE_RESET: flags <= 4'b0001;
-         default: flags <= flags;
     endcase
 end
 
@@ -221,6 +210,6 @@ endmodule
 [15] | [14-0]
  0   | val#
 
-[15] | [14-13] | [12-11] | [10] | [9-7] | [6-4] | [3-0]
- 1   |  cond   |   dsp   |  rsp |  src  |  dst  |  alu
+[15] | [14-13] | [12] | [11-9] |   8   | [7-4] | [3-0]
+ 1   |   dsp   |  rsp |  src   |unused | dst   |  alu
  */

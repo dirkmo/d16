@@ -25,6 +25,7 @@ public:
 		m_core = new MODULE;
 		m_trace = NULL;
 		m_tickcount = 0l;
+		tickcounter = &m_tickcount;
 	}
 
 	virtual ~TESTBENCH() {
