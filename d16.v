@@ -57,32 +57,35 @@ wire [14:0]  imm  = ir[14:0];
 
 wire  [1:0] dsp   = ir[14:13];
 wire        rsp   = ir[12];
-wire  [2:0] src   = ir[11:9];
-//wire       unused = ir[8];
+wire  [3:0] src   = ir[11:8];
 wire  [3:0] dst   = ir[7:4];
 wire  [3:0] aluop = ir[3:0];
 
 reg [15:0] alu;
 
+wire mem_read_access = itype && (src == 4'd4);
+wire mem_write_access = itype && (dst == 4'd6);
+wire mem_access = mem_read_access || mem_write_access;
+
 // wishbone bus
-reg wb_we = 0;
-reg wb_cyc = 0;
 assign o_wb_dat  = bus;
-assign o_wb_we   = cpu_state == `CPUSTATE_EXECUTE ? wb_we  : 1'b0;
-assign o_wb_cyc  = cpu_state == `CPUSTATE_EXECUTE ? wb_cyc :
+assign o_wb_we   = cpu_state == `CPUSTATE_EXECUTE ? mem_write_access  : 1'b0;
+
+assign o_wb_cyc  = cpu_state == `CPUSTATE_EXECUTE ? mem_access :
                    cpu_state == `CPUSTATE_FETCH   ? 1'b1   : 1'b0;
 assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
 
 // bus source selection
 wire [15:0] bus =
-        src == 3'd0 ? R[rs_TOSidx] :
-        src == 3'd1 ? T :
-        src == 3'd2 ? pc :
-        src == 3'd3 ? { 9'd0, ds }:
-        src == 3'd4 ? i_wb_dat :
-        src == 3'd5 ? alu :
-        src == 3'd6 ? T == 16'd0 ? N : pc1 // JMPZ
-                    : T[15] ? N : pc1; // JMPL
+        src == 4'd0 ? R[rs_TOSidx] :
+        src == 4'd1 ? T :
+        src == 4'd2 ? pc1 :
+        src == 4'd3 ? { 9'd0, ds }:
+        src == 4'd4 ? i_wb_dat :
+        src == 4'd5 ? alu :
+        src == 4'd6 ? T == 16'd0 ? N : pc1 : // JMPZ
+        src == 4'd7 ? T[15] ? N : pc1 : // JMPL
+        src == 4'd8 ? N : 16'd0;
 
 // instruction fetch
 always @(posedge i_clk)
@@ -109,8 +112,8 @@ end
 // dst block
 always @(posedge i_clk)
 begin
-    wb_we <= 1'b0;
-    wb_cyc <= 1'b0;
+    //wb_we <= 1'b0;
+    //wb_cyc <= 1'b0;
     if( cpu_state == `CPUSTATE_EXECUTE ) begin
         pc <= pc + 1;
         if( itype == 1'b1 ) begin
@@ -131,13 +134,23 @@ begin
                 4'd5: pc <= bus;
                 4'd6: begin
                     // mem <= bus
-                    wb_we <= 1'b1;
-                    wb_cyc <= 1'b1;
+                    // kommt zu spät!! geht hier nicht.
+                    //wb_we <= 1'b1;
+                    //wb_cyc <= 1'b1;
                 end
                 4'd7: rs <= { 1'b0, bus[5:0] };
                 4'd8: begin
                     D[ds_TOSidx] <= {15'd0, alu_carry };
                     D[ds_NOSidx] <= bus;
+                end
+                4'd9: begin
+                    R[rs_idx] <= pc1;
+                    rs <= rs + 1'b1;
+                    pc <= bus;
+                end
+                4'd10: begin
+                    D[ds_TOSidx] <= D[ds_NOSidx];
+                    D[ds_NOSidx] <= D[ds_TOSidx];
                 end
                 default: ;
             endcase
@@ -204,12 +217,3 @@ begin
 end
 
 endmodule
-
-
-/*
-[15] | [14-0]
- 0   | val#
-
-[15] | [14-13] | [12] | [11-9] |   8   | [7-4] | [3-0]
- 1   |   dsp   |  rsp |  src   |unused | dst   |  alu
- */

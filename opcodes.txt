@@ -11,15 +11,17 @@ rsp:
 --> 1 bit
 
 dst:
-0    R[rs] <= bus, rs++
-1    D[ds] <= bus
-2  D[ds-1] <= bus
-3  D[ds-2] <= bus
-4       ds <= bus
-5       pc <= bus
-6   mem[T] <= bus
-7       rs <= bus 
-8  D[ds-1] <= carry, D[ds-2] <= bus
+ 0    R[rs] <= bus, rs++
+ 1    D[ds] <= bus
+ 2  D[ds-1] <= bus
+ 3  D[ds-2] <= bus
+ 4       ds <= bus
+ 5       pc <= bus
+ 6   mem[T] <= bus
+ 7       rs <= bus 
+ 8  D[ds-1] <= carry, D[ds-2] <= bus
+ 9    R[rs] <= pc, rs++, pc <= bus
+10        T <= N, N <= T
 --> 3 bits + 1 bonus
 
 src:
@@ -29,8 +31,8 @@ src:
 011 bus = ds
 100 bus = mem[T]
 101 bus = alu
-110 
-111 
+110 bus = (T == 16'd0) ? N : pc1
+111 bus =  T[15] ? N : pc1
 --> 3 bits
 
 Alu ; Wenn Alu, dann immer Bustreiber = Alu, Ziel = D[ds-2], ds--

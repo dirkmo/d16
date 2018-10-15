@@ -12,14 +12,15 @@ enum CONSTANTS {
     RSP_NONE    = 0 << 12,
     RSP_DEC     = 1 << 12,
     // src: bus driver
-    SRC_RTOS    = 0 << 9,
-    SRC_DTOS    = 1 << 9,
-    SRC_PC      = 2 << 9,
-    SRC_DSP     = 3 << 9,
-    SRC_MEM     = 4 << 9,
-    SRC_ALU     = 5 << 9,
-    SRC_JZ      = 6 << 9, // conditional jump if zero
-    SRC_JN      = 7 << 9, // conditional jump if less than zero
+    SRC_RTOS    = 0 << 8,
+    SRC_DTOS    = 1 << 8,
+    SRC_PC      = 2 << 8,
+    SRC_DSP     = 3 << 8,
+    SRC_MEM     = 4 << 8,
+    SRC_ALU     = 5 << 8,
+    SRC_JZ      = 6 << 8, // conditional jump if zero
+    SRC_JN      = 7 << 8, // conditional jump if less than zero
+    SRC_DNOS    = 8 << 8,
 
     // dst: destination register
     DST_RS      = 0 << 4, // push return stack element
@@ -31,6 +32,8 @@ enum CONSTANTS {
     DST_MEM     = 6 << 4, // write memory
     DST_RSP     = 7 << 4, // set return stack pointer
     DST_DS12    = 8 << 4, // set TOS, NOS (for NOS=alu, TOS=carry)
+    DST_PC_RS   = 9 << 4, // push(R, pc), rs++, set 
+    DST_T_N     = 10 << 4, // swap N,T
     // alu
     ALU_ADD     = 0 << 0,
     ALU_ADC     = 1 << 0,
@@ -48,18 +51,43 @@ enum CONSTANTS {
 [15] | [14-0]
  0   | val#
 
-[15] | [14-13] | [12] | [11-9] |   8   | [7-4] | [3-0]
- 1   |   dsp   |  rsp |  src   |unused | dst   |  alu
+[15] | [14-13] | [12] | [11-8] | [7-4] | [3-0]
+ 1   |   dsp   |  rsp |  src   | dst   |  alu
  */
 
 enum OPCODES {
-    DUP   = OP | DSP_INC  | SRC_DTOS | DST_DS, // (n -- nn)
-    ADD   = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_ADD, // (n n -- n)
+    DUP    = OP | DSP_INC  | SRC_DTOS | DST_DS, // (n -- n n)
+    SWAP   = OP | DST_T_N,
+    DROP   = OP | DSP_DEC  | SRC_DTOS | DST_DS1, // (n -- )
+ 
+    JMPZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC, // (a z -- )
+    JMPL   = OP | DSP_DEC2 | SRC_JN   | DST_PC, // (a n -- )
+ 
+    CALL   = OP | DSP_DEC  | SRC_DTOS | DST_PC_RS, // (a -- )
+     
+    RET    = OP | RSP_DEC  | SRC_RTOS | DST_PC, // ( -- )
 
-    SUB   = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_SUB, // (n n -- n)
+    PUSHRS = OP | DSP_DEC  | SRC_DTOS | DST_RS, // (n -- )
+    DROPRS = OP | SRC_DTOS | DST_DS1  | RSP_DEC, // ( -- )
+    POPRS  = OP | RSP_DEC  | DSP_INC  | SRC_RTOS | DST_DS, // ( -- n)
+    
+    LOAD   = OP | DST_DS1  | SRC_MEM, // ( a -- n )
+    STORE  = OP | DST_MEM  | SRC_DNOS | DSP_DEC2, // ( n a -- )
+    
+    PUSHPC = 0,
+    PUSHSP = 0,
+    POPSP = 0,
 
-    JMPZ  = OP | DSP_DEC2 | SRC_JZ   | DST_PC, // (a z -- )
-    JMPL  = OP | DSP_DEC2 | SRC_JN   | DST_PC, // (a n -- )
+    ADD    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_ADD, // (n n -- n)
+    ADC = 0,
+    SUB    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_SUB, // (n n -- n)
+    SBC = 0,
+    AND,
+    OR,
+    XOR,
+    INV,
+    LSL,
+    LSR,
 
     HALT = 0xFFFF
 };

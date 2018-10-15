@@ -90,7 +90,7 @@ class Test {
 
     void doCycle() {
         m_ptb->updateBusState(bus);
-        mem.task( (bus.addr < 1024) && bus.cyc, bus);
+        mem.task( bus.cyc, bus);
         m_ptb->updateBusState(bus);
         m_ptb->tick();
     }
@@ -122,7 +122,7 @@ class Test {
 
         bool rres = v16_compare(R, m_vTests[idx].cpu.R);
         if( !rres ) {
-            printf("DS stack error\n");
+            printf("RS stack error\n");
             return false;
         }
         if ( m_vTests[idx].cpu.pc != m_ptb->m_core->d16__DOT__pc ) {
@@ -133,7 +133,7 @@ class Test {
     }
 
     bool doTest(int idx) {
-        printf("============Executing test %i\n", idx);
+        printf("\n======Executing test %i======\n", idx);
         TestData& td = m_vTests[idx];
         mem.clear();
         mem.init(td.prog);
@@ -156,6 +156,7 @@ class Test {
             doCycle();
 
             m_ptb->print_ds();
+            m_ptb->print_rs();
         }
         printf("Simulation finished\n");
         return testResults(idx);
@@ -170,14 +171,100 @@ class Test {
 };
 
 void setupTests(Test& tester) {
+    // 0 SUB JMPZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 5, .D = {  }, .R = { } },
             .prog = { 6, 100, 99, SUB, JMPZ, HALT, 0x1234, HALT }
         }
     );
+    // 1 SUB JMPZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 7, .D = { 0x1234 }, .R = { } },
             .prog = { 6, 100, 100, SUB, JMPZ, HALT, 0x1234, HALT }
+        }
+    );
+    // 2 SUB JMPZ
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { }, .R = { } },
+            .prog = { 6, 99, 100, SUB, JMPZ, HALT, 0x1234, HALT }
+        }
+    );
+    // 3 SUB JMPL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { }, .R = { } },
+            .prog = { 6, 100, 100, SUB, JMPL, HALT, 0x1234, HALT }
+        }
+    );
+    // 4 SUB JMPL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 7, .D = { 0x1234 }, .R = { } },
+            .prog = { 6, 100, 101, SUB, JMPL, HALT, 0x1234, HALT }
+        }
+    );
+    // 5 SUB JMPL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { }, .R = { } },
+            .prog = { 6, 101, 100, SUB, JMPL, HALT, 0x1234, HALT }
+        }
+    );
+    // 6 CALL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { 1 }, .R = { 2 } },
+            .prog = { 4, CALL, HALT, HALT, 0x1, HALT }
+        }
+    );
+    // 7 CALL RET
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 1, 2 }, .R = { } },
+            .prog = { 4, CALL, 0x2, HALT, 0x1, RET, HALT }
+        }
+    );
+    // 8 DUP
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 2, .D = { 4, 4 }, .R = { } },
+            .prog = { 4, DUP, HALT }
+        }
+    );
+    // 9 SWAP
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 1, 4 }, .R = { } },
+            .prog = { 4, 1, SWAP, HALT }
+        }
+    );
+    // 10 DROP
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 4 }, .R = { } },
+            .prog = { 4, 1, DROP, HALT }
+        }
+    );
+    // 11 PUSHRS
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 2, .D = { }, .R = { 4 } },
+            .prog = { 4, PUSHRS, HALT }
+        }
+    );
+    // 12 DROPRS
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { }, .R = { 2 } },
+            .prog = { 1, 2, PUSHRS, PUSHRS, DROPRS, HALT }
+        }
+    );
+    // 13 POPRS
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 6, .D = { 1, 2 }, .R = {  } },
+            .prog = { 1, 2, PUSHRS, PUSHRS, POPRS, POPRS, HALT }
+        }
+    );
+    // 14 LOAD
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0x1234, 0x1234 }, .R = {  } },
+            .prog = { 0x1234, 0, LOAD, HALT }
+        }
+    );
+    // 15 STORE
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 6, .D = { 1, 2 }, .R = {  } },
+            .prog = { 0x1, 2, 0, STORE, 0, LOAD, HALT }
         }
     );
 }
