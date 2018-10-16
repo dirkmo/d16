@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+d16asm.so
+d16asm.dylib
+d16asm.dll
+d16asm.a
+d16asm.lib
+d16asm-test-*
+*.exe
+*.o
+*.obj
+*.lst
