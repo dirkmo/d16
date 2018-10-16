@@ -267,6 +267,84 @@ void setupTests(Test& tester) {
             .prog = { 0x1, 2, 0, STORE, 0, LOAD, HALT }
         }
     );
+    // 16 PUSHPC
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 1, 2, 4 }, .R = {  } },
+            .prog = { 0x1, 2, PUSHPC, HALT }
+        }
+    );
+    // 17 PUSHSP
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 1, 2, 2 }, .R = {  } },
+            .prog = { 0x1, 2, PUSHSP, HALT }
+        }
+    );
+    // 18 POPSP
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 6, .D = { 1, 2 }, .R = {  } },
+            .prog = { 0x1, 2, PUSHSP, 100, 101, POPSP, HALT }
+        }
+    );
+    // 19 AND
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0xAA }, .R = {  } },
+            .prog = { 0xFF, 0xAA, AND, HALT }
+        }
+    );
+    // 20 OR
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0xFF }, .R = {  } },
+            .prog = { 0x55, 0xAA, OR, HALT }
+        }
+    );
+    // 21 XOR
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0xF0 }, .R = {  } },
+            .prog = { 0xFF, 0x0F, XOR, HALT }
+        }
+    );
+    // 22 INV
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 2, .D = { 0x00 }, .R = {  } },
+            .prog = { 0xFF, INV, HALT }
+        }
+    );
+    // 23 LSL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0xAA }, .R = {  } },
+            .prog = { 0x55, 1, LSL, HALT }
+        }
+    );
+    // 24 LSR
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0x55 }, .R = {  } },
+            .prog = { 0xAA, 1, LSR, HALT }
+        }
+    );
+    // 25 ADC
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 1, 2 }, .R = {  } },
+            .prog = { 0xFF, 3, ADC, HALT }
+        }
+    );
+    // 26 ADC
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0x13, 0 }, .R = {  } },
+            .prog = { 0x10, 3, ADC, HALT }
+        }
+    );
+    // 27 SBC
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0xFC, 0 }, .R = {  } },
+            .prog = { 0xFF, 3, SBC, HALT }
+        }
+    );
+    // 28 SBC
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0xFF, 1 }, .R = {  } },
+            .prog = { 0x0, 1, SBC, HALT }
+        }
+    );
 }
 
 

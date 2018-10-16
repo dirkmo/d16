@@ -178,6 +178,8 @@ begin
                 2'b11: ds <= ds - 2;
             endcase
             if( dst == 4'd4 ) begin
+                // stack pointer pushen bringt nichts, stack ist nicht memory
+                // mapped
                 ds <= { 1'b0, bus[5:0] };
             end
         end else begin

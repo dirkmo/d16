@@ -74,20 +74,20 @@ enum OPCODES {
     LOAD   = OP | DST_DS1  | SRC_MEM, // ( a -- n )
     STORE  = OP | DST_MEM  | SRC_DNOS | DSP_DEC2, // ( n a -- )
     
-    PUSHPC = 0,
-    PUSHSP = 0,
-    POPSP = 0,
+    PUSHPC = OP | SRC_PC   | DST_DS   | DSP_INC, // ( -- pc )
+    PUSHSP = OP | SRC_DSP  | DST_DS   | DSP_INC, // ( -- dsp )
+    POPSP  = OP | SRC_DTOS | DST_DSP, // ( dsp -- )
 
     ADD    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_ADD, // (n n -- n)
-    ADC = 0,
+    ADC    = OP | SRC_ALU  | DST_DS12 | ALU_ADC, // (n n -- n c)
     SUB    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_SUB, // (n n -- n)
-    SBC = 0,
-    AND,
-    OR,
-    XOR,
-    INV,
-    LSL,
-    LSR,
+    SBC    = OP | SRC_ALU  | DST_DS12 | ALU_SBC, // (n n -- n c)
+    AND    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_AND, // (n n -- n),
+    OR     = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_OR, // (n n -- n),
+    XOR    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_XOR
+    INV    = OP | SRC_ALU  | DST_DS1  | ALU_INV, // (n -- n),
+    LSL    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_LSL, // (n n -- n),
+    LSR    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_LSR, // (n n -- n),
 
     HALT = 0xFFFF
 };
