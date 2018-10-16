@@ -1,7 +1,7 @@
 #include "Vd16.h"
 #include "verilated.h"
 #include "testbench.h"
-#include "d16.h"
+#include "../include/d16.h"
 #include <vector>
 #include <stdint.h>
 #include <stdio.h>

@@ -11,8 +11,8 @@ endif
 
 all: d16
 
-d16: d16.v d16test.cpp testbench.h
-	verilator $(VFLAGS) d16.v d16test.cpp
+d16:
+	verilator $(VFLAGS) ../verilog/d16.v d16test.cpp
 	cd d16/ && make -j4 -f Vd16.mk
 
 sim: d16
