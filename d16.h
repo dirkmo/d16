@@ -84,7 +84,7 @@ enum OPCODES {
     SBC    = OP | SRC_ALU  | DST_DS12 | ALU_SBC, // (n n -- n c)
     AND    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_AND, // (n n -- n),
     OR     = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_OR, // (n n -- n),
-    XOR    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_XOR
+    XOR    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_XOR,
     INV    = OP | SRC_ALU  | DST_DS1  | ALU_INV, // (n -- n),
     LSL    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_LSL, // (n n -- n),
     LSR    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_LSR, // (n n -- n),

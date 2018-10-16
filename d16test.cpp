@@ -269,7 +269,7 @@ void setupTests(Test& tester) {
     );
     // 16 PUSHPC
     tester.addTest( (TestData) {
-            .cpu =  { .pc = 3, .D = { 1, 2, 4 }, .R = {  } },
+            .cpu =  { .pc = 3, .D = { 1, 2, 3 }, .R = {  } },
             .prog = { 0x1, 2, PUSHPC, HALT }
         }
     );
@@ -282,7 +282,7 @@ void setupTests(Test& tester) {
     // 18 POPSP
     tester.addTest( (TestData) {
             .cpu =  { .pc = 6, .D = { 1, 2 }, .R = {  } },
-            .prog = { 0x1, 2, PUSHSP, 100, 101, POPSP, HALT }
+            .prog = { 0x1, 2, PUSHSP, 100, 2, POPSP, HALT }
         }
     );
     // 19 AND
@@ -305,7 +305,7 @@ void setupTests(Test& tester) {
     );
     // 22 INV
     tester.addTest( (TestData) {
-            .cpu =  { .pc = 2, .D = { 0x00 }, .R = {  } },
+            .cpu =  { .pc = 2, .D = { 0xFF00 }, .R = {  } },
             .prog = { 0xFF, INV, HALT }
         }
     );
@@ -323,8 +323,8 @@ void setupTests(Test& tester) {
     );
     // 25 ADC
     tester.addTest( (TestData) {
-            .cpu =  { .pc = 3, .D = { 1, 2 }, .R = {  } },
-            .prog = { 0xFF, 3, ADC, HALT }
+            .cpu =  { .pc = 4, .D = { 2, 1 }, .R = {  } },
+            .prog = { 0x0, INV, 3, ADC, HALT }
         }
     );
     // 26 ADC
@@ -341,7 +341,7 @@ void setupTests(Test& tester) {
     );
     // 28 SBC
     tester.addTest( (TestData) {
-            .cpu =  { .pc = 3, .D = { 0xFF, 1 }, .R = {  } },
+            .cpu =  { .pc = 3, .D = { 0xFFFF, 1 }, .R = {  } },
             .prog = { 0x0, 1, SBC, HALT }
         }
     );
