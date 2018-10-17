@@ -13,19 +13,23 @@ const string sLabel = sIdentifier ~ ":";
 const string[] keywords = [ "JMP", "RET", "POPSP", "PUSHSP" ];
 const string[] directives = [ ".ORG", ".DW", ".DS", ".EQU" ];
 
-bool isKeyword(string s) {
+string toUpperCase( in string s ) {
     string su;
     foreach( c; s ) { su ~= c.toUpper; }
-    if (keywords.canFind(su)) {
+    return su;
+}
+
+bool isKeyword(string s) {
+    s = toUpperCase(s);
+    if (keywords.canFind(s)) {
         return true;
     }
     return false;
 }
 
 bool isDirective(string s) {
-    string su;
-    foreach( c; s ) { su ~= c.toUpper; }
-    if (directives.canFind(su)) {
+    s = toUpperCase(s);
+    if (directives.canFind(s)) {
         return true;
     }
     return false;
@@ -271,8 +275,11 @@ class Lexer {
                 tokens ~= newToken;
             }
         }
+        trim();
+        convertIdentifiers();
     }
 
+    private:
     void trim() {
         // delete all redundant whitespaces
         Token[] trimmed;
@@ -296,8 +303,112 @@ class Lexer {
             }
         }
     }
-
     Token[] tokens;
+}
+
+// .org 0
+// .ds 4
+// directive Ws Expression Ws* Newline
+
+// .dw 0, 1, 2, 0xFFFF
+// directive Ws expression [, expression...]* Newline
+
+// 1000 Ws
+// 1 + 2 - 3
+// Expression
+
+class CmdBase {
+    public:
+
+    enum Type { None, Org, Ds, Dw, Equ, Push, Expression, Comment, String, Label, Variable }
+    enum Result { Error, Done, Next }
+
+    this( Token t ) {
+        CmdBase.add(t);
+        type = Type.None;
+    }
+
+    Result add( Token t ) {
+        tokens ~= t;
+        return Result.Done;
+    }
+
+    Type type;
+    Token[] tokens;
+}
+
+class CmdOrg : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Org;
+    }
+
+    override Result add( Token t ) {
+        if( t.type == Token.Type.Ws ) {
+            return Result.Next;
+        }
+        if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
+            tokens ~= t;
+            complete = true;
+            return Result.Done;
+        }
+        return Result.Error;
+    }
+
+    override string toString() {
+        string s = tokens[0].cargo;
+        if( complete ) {
+            s ~= " " ~ tokens[1].cargo;
+        }
+        return s;
+    }
+
+    bool complete = false;
+}
+
+class CmdEqu : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Equ;
+    }
+
+    override Result add( Token t ) {
+        return Result.Error;
+    }
+
+    override string toString() {
+        return "";
+    }
+}
+
+class CmdDs : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Ds;
+    }
+
+    override Result add( Token t ) {
+        return Result.Error;
+    }
+
+    override string toString() {
+        return "";
+    }
+}
+
+class CmdDw : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Dw;
+    }
+
+    override Result add( Token t ) {
+        return Result.Error;
+    }
+
+    override string toString() {
+        return "";
+    }
 }
 
 int main(string[] args)
@@ -307,11 +418,36 @@ int main(string[] args)
         return 1;
     }
     Lexer lexer = new Lexer(args[1]);
-    lexer.trim();
-    lexer.convertIdentifiers();
 
+    CmdBase[] commands;
+
+    CmdBase cmd = null;
     foreach( t; lexer.tokens ) {
-        writeln(t.type, ": ", t.cargo);
+        if( cmd !is  null ) {
+            CmdBase.Result res = cmd.add(t);
+            final switch(res) {
+                case CmdBase.Result.Error: writeln("Error!"); return 1;
+                case CmdBase.Result.Done: writeln(cmd.toString()); cmd = null; break;
+                case CmdBase.Result.Next: {}
+            }
+        } else if( t.type == Token.Type.Directive ) {
+            string directive = t.cargo.toUpperCase;
+            if( directive == ".ORG" ) {
+                cmd = new CmdOrg(t);
+            }
+
+            else if( directive == ".EQU" ) {
+                cmd = new CmdEqu(t);
+            }
+
+            else if( directive == ".DS" ) {
+                cmd = new CmdDs(t);
+            }
+
+            else if( directive == ".DW" ) {
+                cmd = new CmdDw(t);
+            }
+        }
     }
 
     return 0;
