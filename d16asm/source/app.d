@@ -56,13 +56,12 @@ class Scanner {
     void scan() {
         uint line = 0;
         uint col = 0;
-        uint pos = 0;
         Character c1;
         uint p;
         for( p = 0; p < filecontents.length; p++) {
-            char c = filecontents[pos];
+            char c = filecontents[p];
             col = (c == '\n') ? 0 : col+1;
-            c1 = Character(c, line, col, pos);
+            c1 = Character(c, line, col, p);
             chars ~= c1;
             line += ( c == '\n' ) ? 1 : 0;
         }
@@ -80,11 +79,11 @@ class Scanner {
     }
 
     bool peek(ref Character c) {
-        bool end = ( pos < filecontents.length );
-        if( !end ) {
+        bool valid = ( pos < filecontents.length );
+        if( valid ) {
             c = chars[pos];
         }
-        return end;
+        return valid;
     }
 
     uint pos = 0;
@@ -95,21 +94,14 @@ class Scanner {
 struct Token {
     enum Type { None, Label, Mnemonic, Directive, Identifier, String, Number, Ws, Comment, Eof }
 
-    Token( uint _line, uint _col, Type _type ) {
-        line = _line;
-        col = _col;
-        _type = type;
-    }
-
     void append(char c) {
         cargo ~= c;
     }
 
-    string cargo;
-
     uint line;
     uint col;
     Type type;
+    string cargo;
 }
 
 class Lexer {
@@ -117,6 +109,7 @@ class Lexer {
         Scanner scanner = new Scanner(fname);
         Character c;
         while( scanner.pop(c) ) {
+            write(c.c);
             if( c.type == Character.Type.DoubleQuote ) {
                 Token newToken = Token(c.line, c.col, Token.Type.String);
                 newToken.append(c.c);
