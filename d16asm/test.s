@@ -1,5 +1,6 @@
 ; d16 assembly
 .org 0
+.equ Test 0xABCD
 
 start:
 
@@ -23,4 +24,4 @@ addr:.dw start
 
 data_end:
 
-.equ len data_end - data
+.equ len 123

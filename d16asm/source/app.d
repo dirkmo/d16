@@ -262,19 +262,18 @@ class Lexer {
                 }
                 tokens ~= newToken;
             }
-
-            else if( c.type == Character.Type.Ws || c.type == Character.Type.Newline ) {
+            else if( c.type == Character.Type.Ws ) {
                 Token newToken = Token(c.line, c.col, Token.Type.Ws);
                 newToken.append(c.c);
                 tokens ~= newToken;
             }
-
             else if( c.type == Character.Type.Newline ) {
                 Token newToken = Token(c.line, c.col, Token.Type.Newline);
                 newToken.append(c.c);
                 tokens ~= newToken;
             }
         }
+        tokens ~= Token(c.line, c.col, Token.Type.Eof);
         trim();
         convertIdentifiers();
     }
@@ -306,17 +305,6 @@ class Lexer {
     Token[] tokens;
 }
 
-// .org 0
-// .ds 4
-// directive Ws Expression Ws* Newline
-
-// .dw 0, 1, 2, 0xFFFF
-// directive Ws expression [, expression...]* Newline
-
-// 1000 Ws
-// 1 + 2 - 3
-// Expression
-
 class CmdBase {
     public:
 
@@ -338,6 +326,8 @@ class CmdBase {
 }
 
 class CmdOrg : CmdBase {
+    enum State { Value, EndLine, Done }
+
     this( Token t ) {
         super(t);
         type = Type.Org;
@@ -347,38 +337,92 @@ class CmdOrg : CmdBase {
         if( t.type == Token.Type.Ws ) {
             return Result.Next;
         }
-        if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
-            tokens ~= t;
-            complete = true;
-            return Result.Done;
+        final switch( state ) {
+            case State.Value:
+                if( [Token.Type.Number, Token.Type.Hexnumber].canFind(t.type) ) {
+                    tokens ~= t;
+                    state = State.EndLine;
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected value", t.line, t.col ));
+            case State.EndLine:
+                if( [Token.Type.Newline, Token.Type.Eof].canFind(t.type)) {
+                    state = State.Done;
+                    return Result.Done;
+                }
+                if( t.type == Token.Type.Comment ) {
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected end of line", t.line, t.col ));
+            case State.Done: break;
         }
         return Result.Error;
     }
 
     override string toString() {
         string s = tokens[0].cargo;
-        if( complete ) {
+        if( state == State.Done ) {
             s ~= " " ~ tokens[1].cargo;
         }
         return s;
     }
 
-    bool complete = false;
+    State state = State.Value;
 }
 
 class CmdEqu : CmdBase {
+    enum State { Ident, Value, LineEnd, Done }
+
     this( Token t ) {
         super(t);
         type = Type.Equ;
     }
 
     override Result add( Token t ) {
+        if( t.type == Token.Type.Ws ) {
+            return Result.Next;
+        }
+        final switch( state ) {
+            case State.Ident:
+                if( t.type == Token.Type.Identifier ) {
+                    tokens ~= t;
+                    state = State.Value;
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected identifier", t.line, t.col ));
+            case State.Value:
+                if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
+                    tokens ~= t;
+                    state = State.LineEnd;
+                    return Result.Next;
+                }
+                if( t.type == Token.Type.Comment ) {
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected value", t.line, t.col ));
+            case State.LineEnd:
+                if( t.type == Token.Type.Comment ) {
+                    return Result.Next;
+                }
+                if( t.type == Token.Type.Newline ) {
+                    state = State.Done;
+                    return Result.Done;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected end of line", t.line, t.col ));
+            case State.Done: break;
+        }
         return Result.Error;
     }
 
     override string toString() {
-        return "";
+        string s = tokens[0].cargo;
+        if( state == State.Done ) {
+            s ~= " " ~ tokens[1].cargo ~ " " ~ tokens[2].cargo;
+        }
+        return s;
     }
+
+    State state = State.Ident;
 }
 
 class CmdDs : CmdBase {
@@ -388,11 +432,22 @@ class CmdDs : CmdBase {
     }
 
     override Result add( Token t ) {
-        return Result.Error;
+        if( t.type == Token.Type.Ws ) {
+            return Result.Next;
+        }
+        if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
+            tokens ~= t;
+            return Result.Done;
+        }
+        throw new Exception(format("ERROR: %s:%s Expected value", t.line, t.col ));
     }
 
     override string toString() {
-        return "";
+        string s = tokens[0].cargo;
+        if( tokens.length > 1 ) {
+            s ~= " " ~ tokens[1].cargo;
+        }
+        return s;
     }
 }
 
@@ -423,15 +478,16 @@ int main(string[] args)
 
     CmdBase cmd = null;
     foreach( t; lexer.tokens ) {
+        writeln(t);
         if( cmd !is  null ) {
             CmdBase.Result res = cmd.add(t);
             final switch(res) {
                 case CmdBase.Result.Error: writeln("Error!"); return 1;
                 case CmdBase.Result.Done: writeln(cmd.toString()); cmd = null; break;
-                case CmdBase.Result.Next: {}
+                case CmdBase.Result.Next: break;
             }
         } else if( t.type == Token.Type.Directive ) {
-            string directive = t.cargo.toUpperCase;
+            const string directive = t.cargo.toUpperCase;
             if( directive == ".ORG" ) {
                 cmd = new CmdOrg(t);
             }
