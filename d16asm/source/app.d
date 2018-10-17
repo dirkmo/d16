@@ -1,14 +1,35 @@
+import std.algorithm.searching;
 import std.ascii;
 import std.file;
 import std.format;
 import std.stdio;
-import std.algorithm.searching;
 
 const string sNumber = "0123456789";
 const string sHexnumber = sNumber ~ "ABCDEFabcdef";
 const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz" ~ sNumber;
 const string sDirective = sIdentifier;
 const string sLabel = sIdentifier ~ ":";
+
+const string[] keywords = [ "JMP", "RET", "POPSP", "PUSHSP" ];
+const string[] directives = [ ".ORG", ".DW", ".DS", ".EQU" ];
+
+bool isKeyword(string s) {
+    string su;
+    foreach( c; s ) { su ~= c.toUpper; }
+    if (keywords.canFind(su)) {
+        return true;
+    }
+    return false;
+}
+
+bool isDirective(string s) {
+    string su;
+    foreach( c; s ) { su ~= c.toUpper; }
+    if (directives.canFind(su)) {
+        return true;
+    }
+    return false;
+}
 
 struct Character {
     enum Type { None, Eof, Alpha, Digit, Plus, Minus, Slash, Asterix, Comma, Colon, Semicolon, Quote, DoubleQuote, Ws, Newline, Dot }
@@ -128,7 +149,7 @@ class Scanner {
 }
 
 struct Token {
-    enum Type { None, Operator, Label, Separator, Keyword, Directive, Identifier, String, Number, Hexnumber, Ws, Comment, Eof }
+    enum Type { None, Operator, Label, Separator, Keyword, Directive, Identifier, String, Number, Hexnumber, Ws, Newline, Comment, Eof }
 
     void append(char c) {
         cargo ~= c;
@@ -244,6 +265,11 @@ class Lexer {
                 tokens ~= newToken;
             }
 
+            else if( c.type == Character.Type.Newline ) {
+                Token newToken = Token(c.line, c.col, Token.Type.Newline);
+                newToken.append(c.c);
+                tokens ~= newToken;
+            }
         }
     }
 
@@ -262,6 +288,15 @@ class Lexer {
         tokens = trimmed;
     }
 
+    void convertIdentifiers() {
+        // convert identifiers to keywords if possible
+        foreach( ref t; tokens ) {
+            if ( isKeyword(t.cargo) ) {
+                t.type = Token.Type.Keyword;
+            }
+        }
+    }
+
     Token[] tokens;
 }
 
@@ -273,6 +308,8 @@ int main(string[] args)
     }
     Lexer lexer = new Lexer(args[1]);
     lexer.trim();
+    lexer.convertIdentifiers();
+
     foreach( t; lexer.tokens ) {
         writeln(t.type, ": ", t.cargo);
     }

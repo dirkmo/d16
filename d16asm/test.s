@@ -18,6 +18,9 @@ data:
     .dw 0, 0xFFFF, 'a'
     .dw "Hallo"
     .ds 100
+
+addr:.dw start
+
 data_end:
 
 .equ len data_end - data
