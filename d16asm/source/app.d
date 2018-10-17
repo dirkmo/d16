@@ -359,7 +359,7 @@ class CmdOrg : CmdBase {
         return Result.Error;
     }
 
-    override string toString() {
+    override string toString() const {
         string s = tokens[0].cargo;
         if( state == State.Done ) {
             s ~= " " ~ tokens[1].cargo;
@@ -414,7 +414,7 @@ class CmdEqu : CmdBase {
         return Result.Error;
     }
 
-    override string toString() {
+    override string toString() const {
         string s = tokens[0].cargo;
         if( state == State.Done ) {
             s ~= " " ~ tokens[1].cargo ~ " " ~ tokens[2].cargo;
@@ -435,14 +435,14 @@ class CmdDs : CmdBase {
         if( t.type == Token.Type.Ws ) {
             return Result.Next;
         }
-        if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
+        if( [Token.Type.Number, Token.Type.Hexnumber].canFind(t.type) ) {
             tokens ~= t;
             return Result.Done;
         }
         throw new Exception(format("ERROR: %s:%s Expected value", t.line, t.col ));
     }
 
-    override string toString() {
+    override string toString() const {
         string s = tokens[0].cargo;
         if( tokens.length > 1 ) {
             s ~= " " ~ tokens[1].cargo;
@@ -452,18 +452,66 @@ class CmdDs : CmdBase {
 }
 
 class CmdDw : CmdBase {
+    enum State { MandatoryValue, Value, Sep, Done }
+
+    Token.Type[] validValues = [
+        Token.Type.Number,
+        Token.Type.Hexnumber,
+        Token.Type.String,
+        Token.Type.Identifier
+    ];
+
     this( Token t ) {
         super(t);
         type = Type.Dw;
     }
 
     override Result add( Token t ) {
+        if( t.type == Token.Type.Ws ) {
+            return Result.Next;
+        }
+        final switch( state ) {
+            case State.MandatoryValue:
+                if( validValues.canFind(t.type) ) {
+                    tokens ~= t;
+                    state = State.Sep;
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected identifier or value", t.line, t.col ));
+            case State.Value:
+                if( validValues.canFind(t.type) ) {
+                    tokens ~= t;
+                    state = State.Sep;
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected identifier or value", t.line, t.col ));
+            case State.Sep:
+                if( t.type == Token.Type.Newline ) {
+                    state = State.Done;
+                    return Result.Done;
+                }
+                if( t.type == Token.Type.Separator ) {
+                    state = State.Value;
+                    return Result.Next;
+                }
+                throw new Exception(format("ERROR: %s:%s Expected ,", t.line, t.col ));
+            case State.Done: break;
+        }
         return Result.Error;
     }
 
-    override string toString() {
-        return "";
+    override string toString() const {
+        string s = tokens[0].cargo;
+        if( tokens.length > 1 ) {
+            s ~= " " ~ tokens[1].cargo;
+            for( uint i = 2; i<tokens.length; i++) {
+                s ~= " " ~ tokens[i].cargo;
+            }
+        }
+        return s;
     }
+
+    State state = State.Value;
 }
 
 int main(string[] args)
@@ -483,24 +531,22 @@ int main(string[] args)
             CmdBase.Result res = cmd.add(t);
             final switch(res) {
                 case CmdBase.Result.Error: writeln("Error!"); return 1;
-                case CmdBase.Result.Done: writeln(cmd.toString()); cmd = null; break;
+                case CmdBase.Result.Done:
+                    commands ~= cmd;
+                    writeln(cmd.toString());
+                    cmd = null;
+                    break;
                 case CmdBase.Result.Next: break;
             }
         } else if( t.type == Token.Type.Directive ) {
             const string directive = t.cargo.toUpperCase;
             if( directive == ".ORG" ) {
                 cmd = new CmdOrg(t);
-            }
-
-            else if( directive == ".EQU" ) {
+            } else if( directive == ".EQU" ) {
                 cmd = new CmdEqu(t);
-            }
-
-            else if( directive == ".DS" ) {
+            } else if( directive == ".DS" ) {
                 cmd = new CmdDs(t);
-            }
-
-            else if( directive == ".DW" ) {
+            } else if( directive == ".DW" ) {
                 cmd = new CmdDw(t);
             }
         }
