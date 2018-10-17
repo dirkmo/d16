@@ -95,6 +95,18 @@ class Scanner {
 struct Token {
     enum Type { None, Label, Mnemonic, Directive, Identifier, String, Number, Ws, Comment, Eof }
 
+    Token( uint _line, uint _col, Type _type ) {
+        line = _line;
+        col = _col;
+        _type = type;
+    }
+
+    void append(char c) {
+        cargo ~= c;
+    }
+
+    string cargo;
+
     uint line;
     uint col;
     Type type;
@@ -107,11 +119,15 @@ class Lexer {
         while( scanner.pop(c) ) {
             if( c.type == Character.Type.DoubleQuote ) {
                 Token newToken = Token(c.line, c.col, Token.Type.String);
-                tokens ~= newToken;
-                while(scanner.pop(c) && c.type != Character.Type.DoubleQuote) {}
+                newToken.append(c.c);
+                while(scanner.pop(c) && c.type != Character.Type.DoubleQuote) {
+                    newToken.append(c.c);
+                }
                 if( c.type != Character.Type.DoubleQuote ) {
                     throw new Exception(format("Missing double quote %s:%s", newToken.col, newToken.line));
                 }
+                newToken.append(c.c);
+                tokens ~= newToken;
             }
         }
     }
@@ -125,6 +141,10 @@ int main(string[] args)
         return 1;
     }
     Lexer lexer = new Lexer(args[1]);
+
+    foreach( t; lexer.tokens ) {
+        writeln(t.type, ": ", t.cargo);
+    }
 
     return 0;
 }
