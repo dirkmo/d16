@@ -164,7 +164,8 @@ class Lexer {
             else if( c.type == Character.Type.Semicolon ) {
                 Token newToken = Token(c.line, c.col, Token.Type.Comment);
                 newToken.append(c.c);
-                while( scanner.pop(c) && c.type != Character.Type.Newline ) {
+                while( scanner.peek(c) && c.type != Character.Type.Newline ) {
+                    scanner.pop(c);
                     newToken.append(c.c);
                 }
                 tokens ~= newToken;
@@ -190,11 +191,10 @@ class Lexer {
                 // first assume Directive
                 Token newToken = Token(c.line, c.col, Token.Type.Directive);
                 newToken.append(c.c);
-                while( scanner.pop(c) && c.type != Character.Type.Ws ) {
+                while( scanner.peek(c) && c.type != Character.Type.Ws ) {
+                    scanner.pop(c);
                     if( c.isValidDirective() ) {
                         newToken.append(c.c);
-                    } else {
-                        throw new Exception(format("Parser error in %s:%s, unexpected '%c'.", newToken.line, newToken.col, c.c ));
                     }
                 }
                 tokens ~= newToken;
@@ -238,7 +238,7 @@ class Lexer {
                 tokens ~= newToken;
             }
 
-            else if( c.type == Character.Type.Ws ) {
+            else if( c.type == Character.Type.Ws || c.type == Character.Type.Newline ) {
                 Token newToken = Token(c.line, c.col, Token.Type.Ws);
                 newToken.append(c.c);
                 tokens ~= newToken;
@@ -253,13 +253,13 @@ class Lexer {
         uint ti = 0;
         trimmed ~= tokens[0];
         for( uint i=1; i+1<tokens.length; i++) {
-           if(trimmed[ti].type == Token.Type.Ws && tokens[i] == Token.Type.Ws ) {
+           if(trimmed[ti].type == Token.Type.Ws && tokens[i].type == Token.Type.Ws ) {
                continue;
            }
            trimmed ~= tokens[i];
            ti++;
         }
-
+        tokens = trimmed;
     }
 
     Token[] tokens;
