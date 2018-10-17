@@ -109,7 +109,6 @@ class Lexer {
         Scanner scanner = new Scanner(fname);
         Character c;
         while( scanner.pop(c) ) {
-            write(c.c);
             if( c.type == Character.Type.DoubleQuote || c.type == Character.Type.Quote ) {
                 Character.Type type = c.type;
                 Token newToken = Token(c.line, c.col, Token.Type.String);
