@@ -4,12 +4,14 @@ import std.format;
 import std.stdio;
 import std.algorithm.searching;
 
-const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz0123456789";
+const string sNumber = "0123456789";
+const string sHexnumber = sNumber ~ "ABCDEFabcdef";
+const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz" ~ sNumber;
 const string sDirective = sIdentifier;
 const string sLabel = sIdentifier ~ ":";
 
 struct Character {
-    enum Type { None, Eof, Alpha, Digit, Plus, Minus, Slash, Asterix, Colon, Semicolon, Quote, DoubleQuote, Ws, Newline, Dot }
+    enum Type { None, Eof, Alpha, Digit, Plus, Minus, Slash, Asterix, Comma, Colon, Semicolon, Quote, DoubleQuote, Ws, Newline, Dot }
 
     this( char c, uint line, uint col, uint pos) {
         this.c = c;
@@ -43,11 +45,29 @@ struct Character {
             type = Type.Colon;
         } else if ( c == '/' ) {
             type = Type.Slash;
+        } else if ( c == ',' ) {
+            type = Type.Comma;
         }
     }
 
     bool isValidDirective() {
-        return sDirective.canFind(c) >= 0;
+        return sDirective.canFind(c);
+    }
+
+    bool isValidIdentifier() {
+        return sIdentifier.canFind(c);
+    }
+
+    bool isValidLabel() {
+        return sLabel.canFind(c);
+    }
+
+    bool isValidNumber() {
+        return sNumber.canFind(c);
+    }
+
+    bool isValidHexnumber() {
+        return sHexnumber.canFind(c);
     }
 
     string toString() {
@@ -70,7 +90,7 @@ class Scanner {
     }
 
     void scan() {
-        uint line = 0;
+        uint line = 1;
         uint col = 0;
         Character c1;
         uint p;
@@ -108,7 +128,7 @@ class Scanner {
 }
 
 struct Token {
-    enum Type { None, Operator, Label, Keyword, Directive, Identifier, String, Number, Ws, Comment, Eof }
+    enum Type { None, Operator, Label, Separator, Keyword, Directive, Identifier, String, Number, Hexnumber, Ws, Comment, Eof }
 
     void append(char c) {
         cargo ~= c;
@@ -158,6 +178,13 @@ class Lexer {
                 tokens ~= newToken;
             }
 
+            // Separator
+            else if( c.type == Character.Type.Comma ) {
+                Token newToken = Token(c.line, c.col, Token.Type.Separator);
+                newToken.append(c.c);
+                tokens ~= newToken;
+            }
+            
             // Directive
             else if( c.type == Character.Type.Dot ) {
                 // first assume Directive
@@ -170,10 +197,53 @@ class Lexer {
                         throw new Exception(format("Parser error in %s:%s, unexpected '%c'.", newToken.line, newToken.col, c.c ));
                     }
                 }
-
                 tokens ~= newToken;
             }
 
+            // Identifier or Label
+            else if( c.type == Character.Type.Alpha ) {
+                // first assume identifier
+                Token newToken = Token(c.line, c.col, Token.Type.Identifier);
+                newToken.append(c.c);
+                while( scanner.pop(c) && c.type != Character.Type.Ws && c.type != Character.Type.Newline && c.type != Character.Type.Comma ) {
+                    if( c.isValidIdentifier() ) {
+                        newToken.append(c.c);
+                    } else if ( c.isValidLabel() ) {
+                        newToken.append(c.c);
+                        newToken.type = Token.Type.Label;
+                        break;
+                    } else {
+                        throw new Exception(format("Parser error in %s:%s, unexpected '%c'.", newToken.line, newToken.col, c.c ));
+                    }
+                }
+                tokens ~= newToken;
+            }
+
+            // Number or Hex number
+            else if( c.type == Character.Type.Digit ) {
+                Character n;
+                Token newToken = Token(c.line, c.col, Token.Type.Number);
+                newToken.append(c.c);
+                if ( c.c == '0' && scanner.peek(n) && n.c.toUpper == 'X' ) {
+                    scanner.pop(c);
+                    newToken.append(c.c);
+                    newToken.type = Token.Type.Hexnumber;
+                    while(scanner.pop(c) && c.isValidHexnumber() ) {
+                        newToken.append(c.c);
+                    }
+                } else {
+                    while(scanner.pop(c) && c.isValidNumber() ) {
+                        newToken.append(c.c);
+                    }
+                }
+                tokens ~= newToken;
+            }
+
+            else if( c.type == Character.Type.Ws ) {
+                Token newToken = Token(c.line, c.col, Token.Type.Ws);
+                newToken.append(c.c);
+                tokens ~= newToken;
+            }
 
         }
     }
