@@ -4,7 +4,7 @@ import std.format;
 import std.stdio;
 
 struct Character {
-    enum Type { None, Eof, Alpha, Digit, Plus, Minus, Semicolon, Quote, DoubleQuote, Ws, Newline }
+    enum Type { None, Eof, Alpha, Digit, Plus, Minus, Semicolon, Quote, DoubleQuote, Ws, Newline, Dot }
 
     this( char c, uint line, uint col, uint pos) {
         this.c = c;
@@ -30,6 +30,8 @@ struct Character {
             type = Type.DoubleQuote;
         } else if( c == '\'' ) {
             type = Type.Quote;
+        } else if ( c == '.' ) {
+            type = Type.Dot;
         }
     }
 
@@ -48,32 +50,45 @@ class Scanner {
     this(string fname) {
         writefln("Opening %s", fname);
         filecontents = cast(ubyte[])read(fname);
+        scan();
     }
 
-    bool get(ref Character cc) {
-        pos++;
-        char c = '\0';
+    void scan() {
+        uint line = 0;
+        uint col = 0;
+        uint pos = 0;
+        Character c1;
+        uint p;
+        for( p = 0; p < filecontents.length; p++) {
+            char c = filecontents[pos];
+            col = (c == '\n') ? 0 : col+1;
+            c1 = Character(c, line, col, pos);
+            chars ~= c1;
+            line += ( c == '\n' ) ? 1 : 0;
+        }
+        c1 = Character('\0', line, col, p);
+        c1.type = Character.Type.Eof;
+        chars ~= c1;
+    }
+
+    bool pop(ref Character c) {
+        bool ret = peek(c);
         if( pos < filecontents.length ) {
-            c = filecontents[pos];
+            pos++;
         }
-        if( c == '\n' ) {
-            col = 0;
-        } else {
-            col++;
-        }
-        cc = Character(c, line, col, pos);
-        if( c == '\n' ) {
-            line++;
-        }
-        if( pos >= filecontents.length ) {
-            cc.type = Character.Type.Eof;
-        }
-        return cc.type != Character.Type.Eof;
+        return ret;
     }
 
-    uint line = 0;
-    uint col = 0;
+    bool peek(ref Character c) {
+        bool end = ( pos < filecontents.length );
+        if( !end ) {
+            c = chars[pos];
+        }
+        return end;
+    }
+
     uint pos = 0;
+    Character[] chars;
     ubyte[] filecontents;
 }
 
@@ -89,11 +104,11 @@ class Lexer {
     this(string fname) {
         Scanner scanner = new Scanner(fname);
         Character c;
-        while( scanner.get(c) ) {
+        while( scanner.pop(c) ) {
             if( c.type == Character.Type.DoubleQuote ) {
                 Token newToken = Token(c.line, c.col, Token.Type.String);
                 tokens ~= newToken;
-                while(scanner.get(c) && c.type != Character.Type.DoubleQuote){}
+                while(scanner.pop(c) && c.type != Character.Type.DoubleQuote) {}
                 if( c.type != Character.Type.DoubleQuote ) {
                     throw new Exception(format("Missing double quote %s:%s", newToken.col, newToken.line));
                 }
