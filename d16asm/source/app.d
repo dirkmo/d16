@@ -2,9 +2,14 @@ import std.ascii;
 import std.file;
 import std.format;
 import std.stdio;
+import std.algorithm.searching;
+
+const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz0123456789";
+const string sDirective = sIdentifier;
+const string sLabel = sIdentifier ~ ":";
 
 struct Character {
-    enum Type { None, Eof, Alpha, Digit, Plus, Minus, Semicolon, Quote, DoubleQuote, Ws, Newline, Dot }
+    enum Type { None, Eof, Alpha, Digit, Plus, Minus, Slash, Asterix, Colon, Semicolon, Quote, DoubleQuote, Ws, Newline, Dot }
 
     this( char c, uint line, uint col, uint pos) {
         this.c = c;
@@ -32,12 +37,23 @@ struct Character {
             type = Type.Quote;
         } else if ( c == '.' ) {
             type = Type.Dot;
+        } else if ( c == '*' ) {
+            type = Type.Asterix;
+        } else if ( c == ':' ) {
+            type = Type.Colon;
+        } else if ( c == '/' ) {
+            type = Type.Slash;
         }
+    }
+
+    bool isValidDirective() {
+        return sDirective.canFind(c) >= 0;
     }
 
     string toString() {
         return format( "%4s %3s %6s %s %s", line, col, pos, c, type );
     }
+
 
     char c;
     uint line;
@@ -92,7 +108,7 @@ class Scanner {
 }
 
 struct Token {
-    enum Type { None, Label, Keyword, Directive, Identifier, String, Number, Ws, Comment, Eof }
+    enum Type { None, Operator, Label, Keyword, Directive, Identifier, String, Number, Ws, Comment, Eof }
 
     void append(char c) {
         cargo ~= c;
@@ -118,19 +134,46 @@ class Lexer {
                     newToken.append(c.c);
                 }
                 if( c.type != type ) {
-                    throw new Exception(format("Missing double quote %s:%s", newToken.col, newToken.line));
+                    throw new Exception(format("Missing double quote %s:%s", newToken.line, newToken.col ));
                 }
                 newToken.append(c.c);
                 tokens ~= newToken;
             }
 
+            // Comment
             else if( c.type == Character.Type.Semicolon ) {
                 Token newToken = Token(c.line, c.col, Token.Type.Comment);
                 newToken.append(c.c);
                 while( scanner.pop(c) && c.type != Character.Type.Newline ) {
-                    newToken.append(c);
+                    newToken.append(c.c);
                 }
+                tokens ~= newToken;
             }
+
+            // Operator
+            else if( c.type == Character.Type.Plus || c.type == Character.Type.Minus ||
+                     c.type == Character.Type.Asterix || c.type == Character.Type.Slash ) {
+                Token newToken = Token(c.line, c.col, Token.Type.Operator);
+                newToken.append(c.c);
+                tokens ~= newToken;
+            }
+
+            // Directive
+            else if( c.type == Character.Type.Dot ) {
+                // first assume Directive
+                Token newToken = Token(c.line, c.col, Token.Type.Directive);
+                newToken.append(c.c);
+                while( scanner.pop(c) && c.type != Character.Type.Ws ) {
+                    if( c.isValidDirective() ) {
+                        newToken.append(c.c);
+                    } else {
+                        throw new Exception(format("Parser error in %s:%s, unexpected '%c'.", newToken.line, newToken.col, c.c ));
+                    }
+                }
+
+                tokens ~= newToken;
+            }
+
 
         }
     }
