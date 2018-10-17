@@ -110,13 +110,14 @@ class Lexer {
         Character c;
         while( scanner.pop(c) ) {
             write(c.c);
-            if( c.type == Character.Type.DoubleQuote ) {
+            if( c.type == Character.Type.DoubleQuote || c.type == Character.Type.Quote ) {
+                Character.Type type = c.type;
                 Token newToken = Token(c.line, c.col, Token.Type.String);
                 newToken.append(c.c);
-                while(scanner.pop(c) && c.type != Character.Type.DoubleQuote) {
+                while(scanner.pop(c) && c.type != type) {
                     newToken.append(c.c);
                 }
-                if( c.type != Character.Type.DoubleQuote ) {
+                if( c.type != type ) {
                     throw new Exception(format("Missing double quote %s:%s", newToken.col, newToken.line));
                 }
                 newToken.append(c.c);
