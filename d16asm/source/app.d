@@ -92,7 +92,7 @@ class Scanner {
 }
 
 struct Token {
-    enum Type { None, Label, Mnemonic, Directive, Identifier, String, Number, Ws, Comment, Eof }
+    enum Type { None, Label, Keyword, Directive, Identifier, String, Number, Ws, Comment, Eof }
 
     void append(char c) {
         cargo ~= c;
@@ -109,6 +109,7 @@ class Lexer {
         Scanner scanner = new Scanner(fname);
         Character c;
         while( scanner.pop(c) ) {
+            // String
             if( c.type == Character.Type.DoubleQuote || c.type == Character.Type.Quote ) {
                 Character.Type type = c.type;
                 Token newToken = Token(c.line, c.col, Token.Type.String);
@@ -122,6 +123,15 @@ class Lexer {
                 newToken.append(c.c);
                 tokens ~= newToken;
             }
+
+            else if( c.type == Character.Type.Semicolon ) {
+                Token newToken = Token(c.line, c.col, Token.Type.Comment);
+                newToken.append(c.c);
+                while( scanner.pop(c) && c.type != Character.Type.Newline ) {
+                    newToken.append(c);
+                }
+            }
+
         }
     }
     Token[] tokens;
