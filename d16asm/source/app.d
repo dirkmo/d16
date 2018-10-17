@@ -246,6 +246,22 @@ class Lexer {
 
         }
     }
+
+    void trim() {
+        // delete all redundant whitespaces
+        Token[] trimmed;
+        uint ti = 0;
+        trimmed ~= tokens[0];
+        for( uint i=1; i+1<tokens.length; i++) {
+           if(trimmed[ti].type == Token.Type.Ws && tokens[i] == Token.Type.Ws ) {
+               continue;
+           }
+           trimmed ~= tokens[i];
+           ti++;
+        }
+
+    }
+
     Token[] tokens;
 }
 
@@ -256,7 +272,7 @@ int main(string[] args)
         return 1;
     }
     Lexer lexer = new Lexer(args[1]);
-
+    lexer.trim();
     foreach( t; lexer.tokens ) {
         writeln(t.type, ": ", t.cargo);
     }
