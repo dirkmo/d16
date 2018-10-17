@@ -143,7 +143,7 @@ struct Token {
 class Lexer {
     this(string fname) {
         Scanner scanner = new Scanner(fname);
-        Character c;
+        Character c, n;
         while( scanner.pop(c) ) {
             // String
             if( c.type == Character.Type.DoubleQuote || c.type == Character.Type.Quote ) {
@@ -205,34 +205,33 @@ class Lexer {
                 // first assume identifier
                 Token newToken = Token(c.line, c.col, Token.Type.Identifier);
                 newToken.append(c.c);
-                while( scanner.pop(c) && c.type != Character.Type.Ws && c.type != Character.Type.Newline && c.type != Character.Type.Comma ) {
-                    if( c.isValidIdentifier() ) {
-                        newToken.append(c.c);
-                    } else if ( c.isValidLabel() ) {
-                        newToken.append(c.c);
-                        newToken.type = Token.Type.Label;
-                        break;
-                    } else {
-                        throw new Exception(format("Parser error in %s:%s, unexpected '%c'.", newToken.line, newToken.col, c.c ));
-                    }
+                while( scanner.peek(n) && n.isValidIdentifier() ) {
+                    scanner.pop(c);
+                    newToken.append(c.c);
+                }
+                if( n.isValidLabel() ) {
+                    scanner.pop(c);
+                    newToken.append(c.c);
+                    newToken.type = Token.Type.Label;
                 }
                 tokens ~= newToken;
             }
 
             // Number or Hex number
             else if( c.type == Character.Type.Digit ) {
-                Character n;
                 Token newToken = Token(c.line, c.col, Token.Type.Number);
                 newToken.append(c.c);
                 if ( c.c == '0' && scanner.peek(n) && n.c.toUpper == 'X' ) {
                     scanner.pop(c);
                     newToken.append(c.c);
                     newToken.type = Token.Type.Hexnumber;
-                    while(scanner.pop(c) && c.isValidHexnumber() ) {
+                    while(scanner.peek(c) && c.isValidHexnumber() ) {
+                        scanner.pop(c);
                         newToken.append(c.c);
                     }
                 } else {
-                    while(scanner.pop(c) && c.isValidNumber() ) {
+                    while(scanner.peek(c) && c.isValidNumber() ) {
+                        scanner.pop(c);
                         newToken.append(c.c);
                     }
                 }
