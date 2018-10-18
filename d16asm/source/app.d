@@ -11,14 +11,15 @@ const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxy
 const string sDirective = sIdentifier;
 const string sLabel = sIdentifier ~ ":";
 
-const string[] keywords = [
-    "DUP", "SWAP", "DROP", "JMPZ", "JMPL", "CALL", "RET", "PUSHRS", "DROPRS",
-    "POPRS", "LOAD", "STORE", "PUSHPC", "PUSHSP", "POPSP", "ADD", "ADC", "SUB",
-    "SBC", "AND", "OR", "XOR", "INV", "LSL", "LSR", 
-];
 const string[] directives = [ ".ORG", ".DW", ".DS", ".EQU" ];
 
-ushort[string] dictIdentifier;
+ushort[string] dictIdentifier;/* = [
+    "DUP": 0xA110, "SWAP": 0x80A0, "DROP": 0xC120, "JMPZ": 0xE650, "JMPL": 0xE750, "JMP": 0xC150,
+    "CALL": 0xC190, "RET": 0x9050, "PUSHRS": 0xC100, "DROPRS": 0x9120, "POPRS": 0xB010, "LOAD": 0x8420,
+    "STORE": 0xE860, "PUSHPC": 0xA210, "PUSHSP": 0xA310, "POPSP": 0x8140, "ADD": 0xC530, "ADC": 0x8581,
+    "SUB": 0xC538, "SBC": 0x8589, "AND": 0xC532, "OR": 0xC533, "XOR": 0xC534, "INV": 0x8525,
+    "LSL": 0xC536, "LSR": 0xC537
+];*/
 
 string toUpperCase( in string s ) {
     string su;
@@ -33,14 +34,6 @@ ushort convertToUshort( string s ) {
         return to!ushort(s, 16);
     }
     return to!ushort(s, 10);
-}
-
-bool isKeyword(string s) {
-    s = toUpperCase(s);
-    if (keywords.canFind(s)) {
-        return true;
-    }
-    return false;
 }
 
 bool isDirective(string s) {
@@ -291,7 +284,7 @@ class Lexer {
         }
         tokens ~= Token(c.line, c.col, Token.Type.Eof);
         trim();
-        convertIdentifiers();
+        //convertIdentifiers();
     }
 
     private:
@@ -310,26 +303,18 @@ class Lexer {
         tokens = trimmed;
     }
 
-    void convertIdentifiers() {
-        // convert identifiers to keywords if possible
-        foreach( ref t; tokens ) {
-            if ( isKeyword(t.cargo) ) {
-                t.type = Token.Type.Keyword;
-            }
-        }
-    }
     Token[] tokens;
 }
 
 class CmdBase {
     public:
 
-    enum Type { None, Org, Ds, Dw, Equ, Number, Expression, Comment, String, Label, Identifier, Keyword }
+    enum Type { Base, Org, Ds, Dw, Equ, Number, Expression, Comment, String, Label, Identifier }
     enum Result { Error, Done, Next }
 
     this( Token t ) {
         CmdBase.add(t);
-        type = Type.None;
+        type = Type.Base;
     }
 
     Result add( Token t ) {
@@ -573,7 +558,7 @@ class CmdDw : CmdBase {
 class CmdLabel : CmdBase {
     this( Token t ) {
         super(t);
-        type = Type.Ds;
+        type = Type.Label;
     }
 
     override Result add( Token t ) {
@@ -586,6 +571,10 @@ class CmdLabel : CmdBase {
 
     override string toString() const {
         return tokens[0].cargo;
+    }
+
+    string getName() {
+        return tokens[0].cargo[0..$-1];
     }
 }
 
@@ -622,16 +611,12 @@ class CmdIdentifier : CmdBase {
         throw new Exception(format("ERROR: %s:%s whatever", t.line, t.col ));
     }
 
-    bool hasValue = false;
-    ushort value;
-}
-
-class CmdKeyword : CmdBase {
-    this( Token t ) {
-        super(t);
-        type = Type.Keyword;
+    string getName() {
+        return tokens[0].cargo;
     }
 
+    bool hasValue = false;
+    ushort value;
 }
 
 struct Cell {
@@ -642,12 +627,15 @@ struct Cell {
 int assemble( CmdBase[] cmd ) {
     ushort pc = 0;
     Cell[0x10000] cells;
+    
     foreach( c; cmd ) {
-        writeln(c);
+        writefln("0x%04X: %s", pc, c);
+    
         final switch( c.type ) {
-            case CmdBase.Type.Org:
+            case CmdBase.Type.Org: {
                 pc = (cast(CmdOrg)c).getAddress();
                 break;
+            }
             case CmdBase.Type.Ds: {
                 CmdDs ds = cast(CmdDs)c;
                 ushort size = ds.getSize();
@@ -673,16 +661,41 @@ int assemble( CmdBase[] cmd ) {
                 CmdNumber num = cast(CmdNumber)c;
                 num.locateAddr = pc;
                 pc++;
+                break;
             }
-            case CmdBase.Type.Expression:
-            case CmdBase.Type.Comment:
-            case CmdBase.Type.String:
-            case CmdBase.Type.Label:
-            case CmdBase.Type.Identifier:
-            case CmdBase.Type.Keyword:
-            case CmdBase.Type.None:
-        }
-    }
+            case CmdBase.Type.Expression: {
+                Token t = c.tokens[0];
+                throw new Exception(format("ERROR: %s:%s Expressions not supported yet.", t.line, t.col ));
+            }
+            case CmdBase.Type.String: {
+                Token t = c.tokens[0];
+                throw new Exception(format("ERROR: %s:%s  Whats the string doing here??", t.line, t.col ));
+            }
+            case CmdBase.Type.Label: {
+                CmdLabel label = cast(CmdLabel)c;
+                label.locateAddr = pc;
+                dictIdentifier[label.getName().toUpperCase] = pc;
+                break;
+            }
+            case CmdBase.Type.Identifier: {
+                CmdIdentifier ident = cast(CmdIdentifier)c;
+                ident.locateAddr = pc;
+                pc++;
+                string name = ident.getName().toUpperCase;
+                if( name in dictIdentifier ) {
+                    writeln(name, ": ", dictIdentifier[name]);
+                } else {
+                    writeln(name, " not known yet.");
+                }
+                break;
+            }
+            case CmdBase.Type.Comment: break;
+            case CmdBase.Type.Base: {
+                Token t = c.tokens[0];
+                throw new Exception(format("ERROR: %s:%s What is this???", t.line, t.col ));
+            }
+        } // switch
+    } // foreach
     writeln(dictIdentifier);
     return 0;
 }
@@ -694,6 +707,14 @@ int main(string[] args)
         return 1;
     }
     Lexer lexer = new Lexer(args[1]);
+
+    dictIdentifier = [
+        "DUP": 0xA110, "SWAP": 0x80A0, "DROP": 0xC120, "JMPZ": 0xE650, "JMPL": 0xE750, "JMP": 0xC150,
+        "CALL": 0xC190, "RET": 0x9050, "PUSHRS": 0xC100, "DROPRS": 0x9120, "POPRS": 0xB010, "LOAD": 0x8420,
+        "STORE": 0xE860, "PUSHPC": 0xA210, "PUSHSP": 0xA310, "POPSP": 0x8140, "ADD": 0xC530, "ADC": 0x8581,
+        "SUB": 0xC538, "SBC": 0x8589, "AND": 0xC532, "OR": 0xC533, "XOR": 0xC534, "INV": 0x8525,
+        "LSL": 0xC536, "LSR": 0xC537
+    ];
 
     CmdBase[] commands;
 
@@ -731,18 +752,9 @@ int main(string[] args)
                 commands ~= cmdnumber;
                 //writeln(cmdnumber);
             } else if ( t.type == Token.Type.Identifier ) {
-                if( keywords.canFind(t.cargo.toUpperCase) ) {
-                    auto cmdkeyword = new CmdKeyword(t);
-                    commands ~= cmdkeyword;
-                    //writeln(cmdkeyword);
-                } else {
                     auto cmdidentifier = new CmdIdentifier(t);
                     commands ~= cmdidentifier;
                     //writeln(cmdidentifier);
-                }
-            } else if ( t.type == Token.Type.Keyword ) {
-                auto cmdkeyword = new CmdKeyword(t);
-                commands ~= cmdkeyword;
             } else if ( [Token.Type.Comment, Token.Type.Newline, Token.Type.Ws].canFind(t.type) ) {
                 // do nothing
             } else {

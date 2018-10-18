@@ -345,6 +345,12 @@ void setupTests(Test& tester) {
             .prog = { 0x0, 1, SBC, HALT }
         }
     );
+    // 29 JMP
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { 1 }, .R = { } },
+            .prog = { 4, JMP, HALT, HALT, 0x1, HALT }
+        }
+    );
 }
 
 

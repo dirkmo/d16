@@ -18,7 +18,7 @@ loop jmp
 data:
     .dw 0, 0xFFFF, 'a'
     .dw "Hallo"
-    .ds 100
+    .ds 2
 
 addr:.dw start
 
