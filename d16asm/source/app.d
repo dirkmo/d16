@@ -1,5 +1,6 @@
 import std.algorithm.searching;
 import std.ascii;
+import std.conv;
 import std.file;
 import std.format;
 import std.stdio;
@@ -308,7 +309,7 @@ class Lexer {
 class CmdBase {
     public:
 
-    enum Type { None, Org, Ds, Dw, Equ, Push, Expression, Comment, String, Label, Variable }
+    enum Type { None, Org, Ds, Dw, Equ, Number, Expression, Comment, String, Label, Identifier }
     enum Result { Error, Done, Next }
 
     this( Token t ) {
@@ -514,6 +515,71 @@ class CmdDw : CmdBase {
     State state = State.Value;
 }
 
+class CmdLabel : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Ds;
+    }
+
+    override Result add( Token t ) {
+        if( t.type == Token.Type.Label ) {
+            tokens ~= t;
+            return Result.Done;
+        }
+        throw new Exception(format("ERROR: %s:%s Expected label", t.line, t.col ));
+    }
+
+    override string toString() const {
+        return tokens[0].cargo;
+    }
+}
+
+class CmdNumber : CmdBase {
+    this( Token t ) {
+        super(t);
+        string s = t.cargo.toUpperCase;
+        if( s.length > 2 && s[0 .. 2] == "0X" ) {
+            s = s[2 .. $];
+        }
+        value = to!uint(s, t.type == Token.Type.Number ? 10: 16);
+        type = Type.Number;
+    }
+
+    override Result add( Token t ) {
+        throw new Exception(format("ERROR: %s:%s Expected (hex) number", t.line, t.col ));
+    }
+
+    uint getValue() {
+        return value;
+    }
+
+    override string toString() const {
+        return value.to!string();
+    }
+
+    uint value;
+}
+
+
+class CmdIdentifier : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Identifier;
+    }
+
+    override Result add( Token t ) {
+        if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
+            tokens ~= t;
+            return Result.Done;
+        }
+        throw new Exception(format("ERROR: %s:%s Expected (hex) number", t.line, t.col ));
+    }
+
+    override string toString() const {
+        return tokens[0].cargo;
+    }
+}
+
 int main(string[] args)
 {
     if( args.length < 2 ) {
@@ -538,16 +604,33 @@ int main(string[] args)
                     break;
                 case CmdBase.Result.Next: break;
             }
-        } else if( t.type == Token.Type.Directive ) {
-            const string directive = t.cargo.toUpperCase;
-            if( directive == ".ORG" ) {
-                cmd = new CmdOrg(t);
-            } else if( directive == ".EQU" ) {
-                cmd = new CmdEqu(t);
-            } else if( directive == ".DS" ) {
-                cmd = new CmdDs(t);
-            } else if( directive == ".DW" ) {
-                cmd = new CmdDw(t);
+        } else {
+            if( t.type == Token.Type.Directive ) {
+                const string directive = t.cargo.toUpperCase;
+                if( directive == ".ORG" ) {
+                    cmd = new CmdOrg(t);
+                } else if( directive == ".EQU" ) {
+                    cmd = new CmdEqu(t);
+                } else if( directive == ".DS" ) {
+                    cmd = new CmdDs(t);
+                } else if( directive == ".DW" ) {
+                    cmd = new CmdDw(t);
+                }
+            } else if( t.type == Token.Type.Label ) {
+                auto cmdlabel = new CmdLabel(t);
+                commands ~= cmdlabel;
+                writeln(cmdlabel.toString());
+            } else if ( [Token.Type.Number, Token.Type.Hexnumber].canFind(t.type) ) {
+                auto cmdnumber = new CmdNumber(t);
+                commands ~= cmdnumber;
+                writeln(cmdnumber);
+            } else if ( t.type == Token.Type.Identifier ) {
+                if( keywords.canFind(t.cargo.toUpperCase) ) {
+                } else {
+                    auto cmdidentifier = new CmdIdentifier(t);
+                    commands ~= cmdidentifier;
+                    writeln(cmdidentifier);
+                }
             }
         }
     }

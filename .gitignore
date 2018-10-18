@@ -24,3 +24,4 @@ d16/verilated.d
 d16/verilated.o
 d16/verilated_vcd_c.d
 test/d16
+d16asm/d16asm
