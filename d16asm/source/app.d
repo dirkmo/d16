@@ -11,7 +11,7 @@ const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxy
 const string sDirective = sIdentifier;
 const string sLabel = sIdentifier ~ ":";
 
-const string[] keywords = [ "JMP", "RET", "POPSP", "PUSHSP" ];
+const string[] keywords = [ "DROP", "JMP", "RET", "POPSP", "PUSHSP", "ADD", "ADC" ];
 const string[] directives = [ ".ORG", ".DW", ".DS", ".EQU" ];
 
 string toUpperCase( in string s ) {
@@ -309,7 +309,7 @@ class Lexer {
 class CmdBase {
     public:
 
-    enum Type { None, Org, Ds, Dw, Equ, Number, Expression, Comment, String, Label, Identifier }
+    enum Type { None, Org, Ds, Dw, Equ, Number, Expression, Comment, String, Label, Identifier, Keyword }
     enum Result { Error, Done, Next }
 
     this( Token t ) {
@@ -320,6 +320,10 @@ class CmdBase {
     Result add( Token t ) {
         tokens ~= t;
         return Result.Done;
+    }
+
+    override string toString() const {
+        return tokens[0].cargo;
     }
 
     Type type;
@@ -575,9 +579,14 @@ class CmdIdentifier : CmdBase {
         throw new Exception(format("ERROR: %s:%s Expected (hex) number", t.line, t.col ));
     }
 
-    override string toString() const {
-        return tokens[0].cargo;
+}
+
+class CmdKeyword : CmdBase {
+    this( Token t ) {
+        super(t);
+        type = Type.Keyword;
     }
+
 }
 
 int main(string[] args)
@@ -626,6 +635,9 @@ int main(string[] args)
                 writeln(cmdnumber);
             } else if ( t.type == Token.Type.Identifier ) {
                 if( keywords.canFind(t.cargo.toUpperCase) ) {
+                    auto cmdkeyword = new CmdKeyword(t);
+                    commands ~= cmdkeyword;
+                    writeln(cmdkeyword);
                 } else {
                     auto cmdidentifier = new CmdIdentifier(t);
                     commands ~= cmdidentifier;
