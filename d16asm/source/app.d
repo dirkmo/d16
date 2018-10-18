@@ -11,13 +11,28 @@ const string sIdentifier = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxy
 const string sDirective = sIdentifier;
 const string sLabel = sIdentifier ~ ":";
 
-const string[] keywords = [ "DROP", "JMP", "RET", "POPSP", "PUSHSP", "ADD", "ADC" ];
+const string[] keywords = [
+    "DUP", "SWAP", "DROP", "JMPZ", "JMPL", "CALL", "RET", "PUSHRS", "DROPRS",
+    "POPRS", "LOAD", "STORE", "PUSHPC", "PUSHSP", "POPSP", "ADD", "ADC", "SUB",
+    "SBC", "AND", "OR", "XOR", "INV", "LSL", "LSR", 
+];
 const string[] directives = [ ".ORG", ".DW", ".DS", ".EQU" ];
+
+ushort[string] dictIdentifier;
 
 string toUpperCase( in string s ) {
     string su;
     foreach( c; s ) { su ~= c.toUpper; }
     return su;
+}
+
+ushort convertToUshort( string s ) {
+    s = s.toUpperCase;
+    if( s.length > 2 && s[0 .. 2] == "0X" ) {
+        s = s[2 .. $];
+        return to!ushort(s, 16);
+    }
+    return to!ushort(s, 10);
 }
 
 bool isKeyword(string s) {
@@ -328,6 +343,8 @@ class CmdBase {
 
     Type type;
     Token[] tokens;
+    
+    ushort locateAddr;
 }
 
 class CmdOrg : CmdBase {
@@ -347,6 +364,7 @@ class CmdOrg : CmdBase {
                 if( [Token.Type.Number, Token.Type.Hexnumber].canFind(t.type) ) {
                     tokens ~= t;
                     state = State.EndLine;
+                    address = convertToUshort(t.cargo);
                     return Result.Next;
                 }
                 throw new Exception(format("ERROR: %s:%s Expected value", t.line, t.col ));
@@ -372,7 +390,12 @@ class CmdOrg : CmdBase {
         return s;
     }
 
+    ushort getAddress() {
+        return address;
+    }
+
     State state = State.Value;
+    ushort address;
 }
 
 class CmdEqu : CmdBase {
@@ -427,6 +450,14 @@ class CmdEqu : CmdBase {
         return s;
     }
 
+    string getName() {
+        return tokens[1].cargo;
+    }
+
+    ushort getValue() {
+        return convertToUshort(tokens[2].cargo);
+    }
+
     State state = State.Ident;
 }
 
@@ -442,6 +473,7 @@ class CmdDs : CmdBase {
         }
         if( [Token.Type.Number, Token.Type.Hexnumber].canFind(t.type) ) {
             tokens ~= t;
+            size = convertToUshort(t.cargo);
             return Result.Done;
         }
         throw new Exception(format("ERROR: %s:%s Expected value", t.line, t.col ));
@@ -454,6 +486,12 @@ class CmdDs : CmdBase {
         }
         return s;
     }
+
+    ushort getSize() {
+        return size;
+    }
+
+    ushort size;
 }
 
 class CmdDw : CmdBase {
@@ -516,6 +554,19 @@ class CmdDw : CmdBase {
         return s;
     }
 
+    ushort getSize() {
+        //return cast(ushort)data.length;
+        return 1;
+    }
+
+    ushort[] getData() {
+        foreach(t; tokens) {
+            // TODO
+        }
+        return [cast(ushort)0];
+    }
+
+    ushort[] data;
     State state = State.Value;
 }
 
@@ -541,11 +592,7 @@ class CmdLabel : CmdBase {
 class CmdNumber : CmdBase {
     this( Token t ) {
         super(t);
-        string s = t.cargo.toUpperCase;
-        if( s.length > 2 && s[0 .. 2] == "0X" ) {
-            s = s[2 .. $];
-        }
-        value = to!uint(s, t.type == Token.Type.Number ? 10: 16);
+        value = convertToUshort(t.cargo);
         type = Type.Number;
     }
 
@@ -561,7 +608,7 @@ class CmdNumber : CmdBase {
         return value.to!string();
     }
 
-    uint value;
+    ushort value;
 }
 
 
@@ -572,13 +619,11 @@ class CmdIdentifier : CmdBase {
     }
 
     override Result add( Token t ) {
-        if( t.type == Token.Type.Number || t.type == Token.Type.Hexnumber ) {
-            tokens ~= t;
-            return Result.Done;
-        }
-        throw new Exception(format("ERROR: %s:%s Expected (hex) number", t.line, t.col ));
+        throw new Exception(format("ERROR: %s:%s whatever", t.line, t.col ));
     }
 
+    bool hasValue = false;
+    ushort value;
 }
 
 class CmdKeyword : CmdBase {
@@ -587,6 +632,59 @@ class CmdKeyword : CmdBase {
         type = Type.Keyword;
     }
 
+}
+
+struct Cell {
+    ushort dat;
+    bool free;
+}
+
+int assemble( CmdBase[] cmd ) {
+    ushort pc = 0;
+    Cell[0x10000] cells;
+    foreach( c; cmd ) {
+        writeln(c);
+        final switch( c.type ) {
+            case CmdBase.Type.Org:
+                pc = (cast(CmdOrg)c).getAddress();
+                break;
+            case CmdBase.Type.Ds: {
+                CmdDs ds = cast(CmdDs)c;
+                ushort size = ds.getSize();
+                ds.locateAddr = pc;
+                pc += size;
+                break;
+            }
+            case CmdBase.Type.Dw: {
+                CmdDw dw = cast(CmdDw)c;
+                ushort size = dw.getSize();
+                dw.locateAddr = pc;
+                pc += size;
+                break;
+            }
+            case CmdBase.Type.Equ: {
+                CmdEqu equ = cast(CmdEqu)c;
+                string name = equ.getName();
+                ushort value = equ.getValue();
+                dictIdentifier[name] = value;
+                break;
+            }
+            case CmdBase.Type.Number: {
+                CmdNumber num = cast(CmdNumber)c;
+                num.locateAddr = pc;
+                pc++;
+            }
+            case CmdBase.Type.Expression:
+            case CmdBase.Type.Comment:
+            case CmdBase.Type.String:
+            case CmdBase.Type.Label:
+            case CmdBase.Type.Identifier:
+            case CmdBase.Type.Keyword:
+            case CmdBase.Type.None:
+        }
+    }
+    writeln(dictIdentifier);
+    return 0;
 }
 
 int main(string[] args)
@@ -601,14 +699,13 @@ int main(string[] args)
 
     CmdBase cmd = null;
     foreach( t; lexer.tokens ) {
-        writeln(t);
         if( cmd !is  null ) {
             CmdBase.Result res = cmd.add(t);
             final switch(res) {
                 case CmdBase.Result.Error: writeln("Error!"); return 1;
                 case CmdBase.Result.Done:
                     commands ~= cmd;
-                    writeln(cmd.toString());
+                    //writeln(cmd.toString());
                     cmd = null;
                     break;
                 case CmdBase.Result.Next: break;
@@ -628,24 +725,33 @@ int main(string[] args)
             } else if( t.type == Token.Type.Label ) {
                 auto cmdlabel = new CmdLabel(t);
                 commands ~= cmdlabel;
-                writeln(cmdlabel.toString());
+                //writeln(cmdlabel.toString());
             } else if ( [Token.Type.Number, Token.Type.Hexnumber].canFind(t.type) ) {
                 auto cmdnumber = new CmdNumber(t);
                 commands ~= cmdnumber;
-                writeln(cmdnumber);
+                //writeln(cmdnumber);
             } else if ( t.type == Token.Type.Identifier ) {
                 if( keywords.canFind(t.cargo.toUpperCase) ) {
                     auto cmdkeyword = new CmdKeyword(t);
                     commands ~= cmdkeyword;
-                    writeln(cmdkeyword);
+                    //writeln(cmdkeyword);
                 } else {
                     auto cmdidentifier = new CmdIdentifier(t);
                     commands ~= cmdidentifier;
-                    writeln(cmdidentifier);
+                    //writeln(cmdidentifier);
                 }
+            } else if ( t.type == Token.Type.Keyword ) {
+                auto cmdkeyword = new CmdKeyword(t);
+                commands ~= cmdkeyword;
+            } else if ( [Token.Type.Comment, Token.Type.Newline, Token.Type.Ws].canFind(t.type) ) {
+                // do nothing
+            } else {
+                throw new Exception(format("ERROR: %s:%s Unexpected whatever", t.line, t.col ));
             }
         }
     }
+
+    assemble(commands);
 
     return 0;
 }
