@@ -3,23 +3,23 @@
 
 .org 0
 
-msg
-print
-call
+msg print call
 
-.dw 0xFFFF ; sim end
+0xFFFF ; sim end
+
 
 print:
 ; TOS = string addr
         ; msg
-        dup  ; msg msg
-        load ; msg cc
+        dup load ; msg cc
+        dup done jmpz ; msg cc
         dup  ; msg cc cc
-        done ; msg cc cc done
-        swap ; msg cc done cc
-        jmpz ; msg cc
-        uart
-        store
+        uart store ; msg cc
+        8 lsr ; msg 0c
+        dup done jmpz ; msg 0c
+        uart store ; msg
+        1 add ; msg+1
+        print jmp
 
 done:   ret
 

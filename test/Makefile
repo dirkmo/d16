@@ -11,7 +11,7 @@ endif
 
 all: d16
 
-print_opcodes: print_opcodes.c
+print_opcodes: print_opcodes.c ../include/d16.h
 	gcc print_opcodes.c -o print_opcodes
 
 d16:

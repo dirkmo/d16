@@ -508,7 +508,7 @@ class CmdDw : CmdBase {
                 }
                 throw new Exception(format("ERROR: %s:%s Expected identifier or value", t.line, t.col ));
             case State.Sep:
-                if( t.type == Token.Type.Newline ) {
+                if( [Token.Type.Newline, Token.Type.Comment].canFind(t.type) ) {
                     state = State.Done;
                     return Result.Done;
                 }
