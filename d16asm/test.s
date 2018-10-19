@@ -2,9 +2,10 @@
 .org 0
 .equ Test 0xABCD
 
-start:
 
 0
+start:
+addr
 100
 56163
 0x1234

@@ -770,13 +770,12 @@ int assemble( CmdBase[] cmd ) {
     writeln("\nAssembling:");
     // fill memory
     foreach( c; cmd ) {
-        writeln(c);
-        writef("0x%04X: ", c.locateAddr);
+        writeln("  > " ~ c.toString());
         switch( c.type ) {
             case CmdBase.Type.Dw: {
                 CmdDw dw = cast(CmdDw)c;
                 dw.convert();
-                //writeln(dw);
+                writef("0x%04X: ", c.locateAddr);
                 ushort[] data = dw.getData();
                 for( ushort p = 0; p < data.length; p++ ) {
                     setMem( cast(ushort)(dw.locateAddr + p), data[p] );
@@ -787,6 +786,7 @@ int assemble( CmdBase[] cmd ) {
             }
             case CmdBase.Type.Number: {
                 CmdNumber num = cast(CmdNumber)c;
+                writef("0x%04X: ", c.locateAddr);
                 writefln("%04X", num.getValue());
                 setMem( num.locateAddr, num.getValue() );
                 break;
@@ -794,14 +794,23 @@ int assemble( CmdBase[] cmd ) {
             case CmdBase.Type.Identifier: {
                 CmdIdentifier ident = cast(CmdIdentifier)c;
                 ushort value = dictIdentifier[ident.getName().toUpperCase] ;
+                writef("0x%04X: ", c.locateAddr);
                 writefln("%04X ", value);
                 setMem( ident.locateAddr, value );
                 break;
             }
-            default: writeln(); break;
+            default: break;
         }
     }
 
+    writeln("\nMemory:");
+    ushort addr = 0;
+    foreach( m; cells ) {
+        if( !m.free ) {
+            writefln("0x%04X: 0x%04X", addr, m.dat);
+        }
+        addr++;
+    }
 
     return 0;
 }
