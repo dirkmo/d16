@@ -12,6 +12,8 @@ start:
 add
 DROP
 
+len
+
 loop:
 loop jmp
 
@@ -24,4 +26,4 @@ addr:.dw start
 
 data_end:
 
-.equ len 123
+.equ len 1638

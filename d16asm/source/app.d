@@ -1,4 +1,4 @@
-import std.algorithm.searching;
+import std.algorithm;
 import std.ascii;
 import std.conv;
 import std.file;
@@ -502,6 +502,7 @@ class CmdDw : CmdBase {
             case State.MandatoryValue:
                 if( validValues.canFind(t.type) ) {
                     tokens ~= t;
+                    convert(t);
                     state = State.Sep;
                     return Result.Next;
                 }
@@ -509,6 +510,7 @@ class CmdDw : CmdBase {
             case State.Value:
                 if( validValues.canFind(t.type) ) {
                     tokens ~= t;
+                    convert(t);
                     state = State.Sep;
                     return Result.Next;
                 }
@@ -539,19 +541,25 @@ class CmdDw : CmdBase {
         return s;
     }
 
+    void convert( Token t ) {
+        switch( t.type ) {
+            case Token.Type.Number: values ~= convertToUshort(t.cargo); break;
+            case Token.Type.Hexnumber: values ~= convertToUshort(t.cargo); break;
+            case Token.Type.Identifier:
+            case Token.Type.String: 
+            default:
+        }
+    }
+
     ushort getSize() {
-        //return cast(ushort)data.length;
-        return 1;
+        return cast(ushort)values.length;
     }
 
     ushort[] getData() {
-        foreach(t; tokens) {
-            // TODO
-        }
-        return [cast(ushort)0];
+        return values;
     }
 
-    ushort[] data;
+    ushort[] values;
     State state = State.Value;
 }
 
@@ -589,7 +597,7 @@ class CmdNumber : CmdBase {
         throw new Exception(format("ERROR: %s:%s Expected (hex) number", t.line, t.col ));
     }
 
-    uint getValue() {
+    ushort getValue() {
         return value;
     }
 
@@ -621,13 +629,23 @@ class CmdIdentifier : CmdBase {
 
 struct Cell {
     ushort dat;
-    bool free;
+    bool free = true;
+}
+
+Cell[0x10000] cells;
+
+void setMem( ushort addr, ushort dat ) {
+    if( !cells[addr].free ) {
+        throw new Exception(format("ERROR: Address 0x%04X not free", addr));
+    }
+    cells[addr].free = false;
+    cells[addr].dat = dat;
 }
 
 int assemble( CmdBase[] cmd ) {
     ushort pc = 0;
-    Cell[0x10000] cells;
-    
+    string[] undefined;
+    // first pass
     foreach( c; cmd ) {
         writefln("0x%04X: %s", pc, c);
     
@@ -652,7 +670,7 @@ int assemble( CmdBase[] cmd ) {
             }
             case CmdBase.Type.Equ: {
                 CmdEqu equ = cast(CmdEqu)c;
-                string name = equ.getName();
+                string name = equ.getName().toUpperCase;
                 ushort value = equ.getValue();
                 dictIdentifier[name] = value;
                 break;
@@ -696,7 +714,60 @@ int assemble( CmdBase[] cmd ) {
             }
         } // switch
     } // foreach
+
+    // looking for unknown identifiers
+    foreach( ud; undefined ) {
+        if( ud in dictIdentifier ) {
+            undefined.remove(ud);
+        }
+    }
+    if( undefined.length > 0 ) {
+        foreach( ud; undefined ) {
+            writeln(ud);
+        }
+        throw new Exception("ERROR: Undefined, aborting.");
+    }
+
     writeln(dictIdentifier);
+
+    // sort by address
+    sort!((a,b) => a.locateAddr < b.locateAddr)(cmd);
+
+    writeln("\nAssembling:");
+    // fill memory
+    foreach( c; cmd ) {
+        writeln(c);
+        writef("0x%04X: ", c.locateAddr);
+        switch( c.type ) {
+            case CmdBase.Type.Dw: {
+                CmdDw dw = cast(CmdDw)c;
+                writeln(dw);
+                ushort[] data = dw.getData();
+                for( ushort p = 0; p < data.length; p++ ) {
+                    setMem( cast(ushort)(dw.locateAddr + p), data[p] );
+                    writef("%04X ", data[p]);
+                }
+                writeln();
+                break;
+            }
+            case CmdBase.Type.Number: {
+                CmdNumber num = cast(CmdNumber)c;
+                writefln("%04X", num.getValue());
+                setMem( num.locateAddr, num.getValue() );
+                break;
+            }
+            case CmdBase.Type.Identifier: {
+                CmdIdentifier ident = cast(CmdIdentifier)c;
+                ushort value = dictIdentifier[ident.getName().toUpperCase] ;
+                writefln("%04X ", value);
+                setMem( ident.locateAddr, value );
+                break;
+            }
+            default: {}
+        }
+    }
+
+
     return 0;
 }
 
