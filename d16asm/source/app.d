@@ -502,7 +502,6 @@ class CmdDw : CmdBase {
             case State.MandatoryValue:
                 if( validValues.canFind(t.type) ) {
                     tokens ~= t;
-                    convert(t);
                     state = State.Sep;
                     return Result.Next;
                 }
@@ -510,7 +509,6 @@ class CmdDw : CmdBase {
             case State.Value:
                 if( validValues.canFind(t.type) ) {
                     tokens ~= t;
-                    convert(t);
                     state = State.Sep;
                     return Result.Next;
                 }
@@ -541,18 +539,47 @@ class CmdDw : CmdBase {
         return s;
     }
 
-    void convert( Token t ) {
-        switch( t.type ) {
-            case Token.Type.Number: values ~= convertToUshort(t.cargo); break;
-            case Token.Type.Hexnumber: values ~= convertToUshort(t.cargo); break;
-            case Token.Type.Identifier:
-            case Token.Type.String: 
-            default:
+    void convert() {
+        values.length = 0;
+        foreach( t; tokens[1 .. $] ) {
+            switch( t.type ) {
+                case Token.Type.Number: values ~= convertToUshort(t.cargo); break;
+                case Token.Type.Hexnumber: values ~= convertToUshort(t.cargo); break;
+                case Token.Type.Identifier: values ~= dictIdentifier[t.cargo.toUpperCase]; break;
+                case Token.Type.String: {
+                    string s = t.cargo[1 .. $-1]; // without quotes
+                    ubyte[] ba = cast(ubyte[])s;
+                    ushort val;
+                    uint i;
+                    for( i = 0; i<ba.length; i++) {
+                        if( i % 2 == 0 ) {
+                            val = ba[i];
+                        } else {
+                            val |= ba[i] << 8;
+                            values ~= val;
+                        }
+                    }
+                    if( i%2 == 1 ) {
+                        values ~= val;
+                    }
+                    break;
+                }
+                default:
+            }
         }
     }
 
     ushort getSize() {
-        return cast(ushort)values.length;
+        ushort len = 0;
+        foreach( t; tokens[1..$] ) {
+            if ( t.type == Token.Type.String ) {
+                string s = t.cargo[1..$-1]; // without quotes
+                len += s.length / 2 + s.length % 2;
+            } else {
+                len++;
+            }
+        }
+        return len;
     }
 
     ushort[] getData() {
@@ -623,8 +650,15 @@ class CmdIdentifier : CmdBase {
         return tokens[0].cargo;
     }
 
-    bool hasValue = false;
-    ushort value;
+    bool getValue( ref ushort value ) {
+        string s = tokens[0].cargo.toUpperCase;
+        if( s in dictIdentifier ) {
+            value = dictIdentifier[s];
+            return true;
+        }
+        return false;
+    }
+
 }
 
 struct Cell {
@@ -699,11 +733,11 @@ int assemble( CmdBase[] cmd ) {
                 CmdIdentifier ident = cast(CmdIdentifier)c;
                 ident.locateAddr = pc;
                 pc++;
-                string name = ident.getName().toUpperCase;
-                if( name in dictIdentifier ) {
-                    writeln(name, ": ", dictIdentifier[name]);
+                ushort value;
+                if( ident.getValue(value) ) {
+                    writefln("%s: %04X", ident.getName(), value);
                 } else {
-                    writeln(name, " not known yet.");
+                    writeln(ident.getName(), " not known yet.");
                 }
                 break;
             }
@@ -741,7 +775,8 @@ int assemble( CmdBase[] cmd ) {
         switch( c.type ) {
             case CmdBase.Type.Dw: {
                 CmdDw dw = cast(CmdDw)c;
-                writeln(dw);
+                dw.convert();
+                //writeln(dw);
                 ushort[] data = dw.getData();
                 for( ushort p = 0; p < data.length; p++ ) {
                     setMem( cast(ushort)(dw.locateAddr + p), data[p] );
@@ -763,7 +798,7 @@ int assemble( CmdBase[] cmd ) {
                 setMem( ident.locateAddr, value );
                 break;
             }
-            default: {}
+            default: writeln(); break;
         }
     }
 

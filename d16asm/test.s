@@ -18,7 +18,7 @@ loop:
 loop jmp
 
 data:
-    .dw 0, 0xFFFF, 'a'
+    .dw 0, 0xFFFF, 'A'
     .dw "Hallo"
     .ds 2
 
