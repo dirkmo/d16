@@ -83,16 +83,15 @@ wire [15:0] bus =
         src == 4'd3 ? { 9'd0, ds }:
         src == 4'd4 ? i_wb_dat :
         src == 4'd5 ? alu :
-        src == 4'd6 ? T == 16'd0 ? N : pc1 : // JMPZ
-        src == 4'd7 ? T[15] ? N : pc1 : // JMPL
+        src == 4'd6 ? N == 16'd0 ? T : pc1 : // JMPZ
+        src == 4'd7 ? N[15] ? T : pc1 : // JMPL
         src == 4'd8 ? N
                     : 16'd0;
 
 // cond: used in dst block for conditional branches.
 // only push address on RS when cond == 1
-wire cond = (src == 4'd6) ? T == 16'd0 :
-            (src == 4'd7) ? T[15] : 1'b1;
-        
+wire cond = (src == 4'd6) ? N == 16'd0 :
+            (src == 4'd7) ? N[15] : 1'b1;
 
 // instruction fetch
 always @(posedge i_clk)

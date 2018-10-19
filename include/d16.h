@@ -60,12 +60,12 @@ enum OPCODES {
     SWAP   = OP | DST_T_N,
     DROP   = OP | DSP_DEC  | SRC_DTOS | DST_DS1, // (n -- )
  
-    JMPZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC, // (a z -- )
-    JMPL   = OP | DSP_DEC2 | SRC_JN   | DST_PC, // (a n -- )
+    JMPZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC, // (z a -- )
+    JMPL   = OP | DSP_DEC2 | SRC_JN   | DST_PC, // (n a -- )
     JMP    = OP | DSP_DEC  | SRC_DTOS | DST_PC, // ( a -- )
  
-    BRAZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC_RS, // (a z -- )
-    BRAL   = OP | DSP_DEC2 | SRC_JN   | DST_PC_RS, // (a n -- )
+    BRAZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC_RS, // (z a -- )
+    BRAL   = OP | DSP_DEC2 | SRC_JN   | DST_PC_RS, // (n a -- )
     CALL   = OP | DSP_DEC  | SRC_DTOS | DST_PC_RS, // (a -- )
      
     RET    = OP | RSP_DEC  | SRC_RTOS | DST_PC, // ( -- )

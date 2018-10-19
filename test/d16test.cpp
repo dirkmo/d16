@@ -174,37 +174,37 @@ void setupTests(Test& tester) {
     // 0 SUB JMPZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 5, .D = {  }, .R = { } },
-            .prog = { 6, 100, 99, SUB, JMPZ, HALT, 0x1234, HALT }
+            .prog = { 100, 99, SUB, 6, JMPZ, HALT, 0x1234, HALT }
         }
     );
     // 1 SUB JMPZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 7, .D = { 0x1234 }, .R = { } },
-            .prog = { 6, 100, 100, SUB, JMPZ, HALT, 0x1234, HALT }
+            .prog = { 100, 100, SUB, 6, JMPZ, HALT, 0x1234, HALT }
         }
     );
     // 2 SUB JMPZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 5, .D = { }, .R = { } },
-            .prog = { 6, 99, 100, SUB, JMPZ, HALT, 0x1234, HALT }
+            .prog = { 99, 100, SUB, 6, JMPZ, HALT, 0x1234, HALT }
         }
     );
     // 3 SUB JMPL
     tester.addTest( (TestData) {
             .cpu =  { .pc = 5, .D = { }, .R = { } },
-            .prog = { 6, 100, 100, SUB, JMPL, HALT, 0x1234, HALT }
+            .prog = { 100, 100, SUB, 6, JMPL, HALT, 0x1234, HALT }
         }
     );
     // 4 SUB JMPL
     tester.addTest( (TestData) {
             .cpu =  { .pc = 7, .D = { 0x1234 }, .R = { } },
-            .prog = { 6, 100, 101, SUB, JMPL, HALT, 0x1234, HALT }
+            .prog = { 100, 101, SUB, 6, JMPL, HALT, 0x1234, HALT }
         }
     );
     // 5 SUB JMPL
     tester.addTest( (TestData) {
             .cpu =  { .pc = 5, .D = { }, .R = { } },
-            .prog = { 6, 101, 100, SUB, JMPL, HALT, 0x1234, HALT }
+            .prog = { 101, 100, SUB, 6, JMPL, HALT, 0x1234, HALT }
         }
     );
     // 6 CALL
@@ -354,25 +354,25 @@ void setupTests(Test& tester) {
     // 30 BRAZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 6, .D = { 1 }, .R = { 3 } },
-            .prog = { 5, 0, BRAZ, HALT, HALT, 0x1, HALT }
+            .prog = { 0, 5, BRAZ, HALT, HALT, 0x1, HALT }
         }
     );
     // 31 BRAZ
     tester.addTest( (TestData) {
             .cpu =  { .pc = 3, .D = { }, .R = { } },
-            .prog = { 5, 1, BRAZ, HALT, HALT, 0x1, HALT }
+            .prog = { 1, 5, BRAZ, HALT, HALT, 0x1, HALT }
         }
     );
     // 32 BRAL
     tester.addTest( (TestData) {
             .cpu =  { .pc = 3, .D = { }, .R = { } },
-            .prog = { 5, 0, BRAL, HALT, HALT, 0x1, HALT }
+            .prog = { 0, 5, BRAL, HALT, HALT, 0x1, HALT }
         }
     );
     // 33 BRAL
     tester.addTest( (TestData) {
             .cpu =  { .pc = 7, .D = { 1 }, .R = { 4 } },
-            .prog = { 6, 0, INV, BRAL, HALT, HALT, 0x1, HALT }
+            .prog = { 0, INV, 6, BRAL, HALT, HALT, 0x1, HALT }
         }
     );
 }
