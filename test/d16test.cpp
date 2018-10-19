@@ -351,6 +351,30 @@ void setupTests(Test& tester) {
             .prog = { 4, JMP, HALT, HALT, 0x1, HALT }
         }
     );
+    // 30 BRAZ
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 6, .D = { 1 }, .R = { 3 } },
+            .prog = { 5, 0, BRAZ, HALT, HALT, 0x1, HALT }
+        }
+    );
+    // 31 BRAZ
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { }, .R = { } },
+            .prog = { 5, 1, BRAZ, HALT, HALT, 0x1, HALT }
+        }
+    );
+    // 32 BRAL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { }, .R = { } },
+            .prog = { 5, 0, BRAL, HALT, HALT, 0x1, HALT }
+        }
+    );
+    // 33 BRAL
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 7, .D = { 1 }, .R = { 4 } },
+            .prog = { 6, 0, INV, BRAL, HALT, HALT, 0x1, HALT }
+        }
+    );
 }
 
 

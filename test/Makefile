@@ -11,6 +11,9 @@ endif
 
 all: d16
 
+print_opcodes: print_opcodes.c
+	gcc print_opcodes.c -o print_opcodes
+
 d16:
 	verilator $(VFLAGS) ../verilog/d16.v d16test.cpp
 	cd d16/ && make -j4 -f Vd16.mk

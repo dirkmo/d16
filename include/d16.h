@@ -64,6 +64,8 @@ enum OPCODES {
     JMPL   = OP | DSP_DEC2 | SRC_JN   | DST_PC, // (a n -- )
     JMP    = OP | DSP_DEC  | SRC_DTOS | DST_PC, // ( a -- )
  
+    BRAZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC_RS, // (a z -- )
+    BRAL   = OP | DSP_DEC2 | SRC_JN   | DST_PC_RS, // (a n -- )
     CALL   = OP | DSP_DEC  | SRC_DTOS | DST_PC_RS, // (a -- )
      
     RET    = OP | RSP_DEC  | SRC_RTOS | DST_PC, // ( -- )

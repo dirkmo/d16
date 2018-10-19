@@ -85,7 +85,14 @@ wire [15:0] bus =
         src == 4'd5 ? alu :
         src == 4'd6 ? T == 16'd0 ? N : pc1 : // JMPZ
         src == 4'd7 ? T[15] ? N : pc1 : // JMPL
-        src == 4'd8 ? N : 16'd0;
+        src == 4'd8 ? N
+                    : 16'd0;
+
+// cond: used in dst block for conditional branches.
+// only push address on RS when cond == 1
+wire cond = (src == 4'd6) ? T == 16'd0 :
+            (src == 4'd7) ? T[15] : 1'b1;
+        
 
 // instruction fetch
 always @(posedge i_clk)
@@ -143,7 +150,8 @@ begin
                     D[ds_TOSidx] <= {15'd0, alu_carry };
                     D[ds_NOSidx] <= bus;
                 end
-                4'd9: begin
+                4'd9: if ( cond ) begin
+                    // only push address on RS when condition true
                     R[rs_idx] <= pc1;
                     rs <= rs + 1'b1;
                     pc <= bus;
