@@ -719,8 +719,12 @@ int assemble( CmdBase[] cmd ) {
             }
             case CmdBase.Type.Label: {
                 CmdLabel label = cast(CmdLabel)c;
+                Token t = c.tokens[0];
                 label.locateAddr = pc;
                 dictIdentifier[label.getName().toUpperCase] = pc;
+                if( pc > 0x7FFF ) {
+                    throw new Exception(format("ERROR: %s:%s  Labels with address > 0x7FFF not supported!", t.line, t.col ));
+                }
                 break;
             }
             case CmdBase.Type.Identifier: {
@@ -729,6 +733,8 @@ int assemble( CmdBase[] cmd ) {
                 pc++;
                 ushort value;
                 if( ident.getValue(value) ) {
+                    // if val > 0x7FFF a second byte for INV is needed. correcting
+                    // for that when all idents are known
                     writefln("%s: %04X", ident.getName(), value);
                 } else {
                     writeln(ident.getName(), " not known yet.");
@@ -761,6 +767,7 @@ int assemble( CmdBase[] cmd ) {
     // sort by address
     sort!((a,b) => a.locateAddr < b.locateAddr)(cmd);
 
+    //----------------------------------------------------------------------
     writeln("\nAssembling:");
     // fill memory
     foreach( c; cmd ) {
@@ -786,10 +793,10 @@ int assemble( CmdBase[] cmd ) {
                     writefln("%04X", val);
                     setMem( num.locateAddr, num.getValue() );
                 } else {
-                    writeln("BLA");
                     const ushort inv = dictIdentifier["INV"];
+                    val = cast(ushort) ~cast(uint)val;
                     writefln("%04X %04X", val, inv);
-                    setMem( num.locateAddr, ~val );
+                    setMem( num.locateAddr, val );
                     setMem( cast(ushort)(num.locateAddr+1), inv );
                 }
                 break;
