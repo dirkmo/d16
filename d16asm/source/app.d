@@ -706,7 +706,7 @@ int assemble( CmdBase[] cmd ) {
             case CmdBase.Type.Number: {
                 CmdNumber num = cast(CmdNumber)c;
                 num.locateAddr = pc;
-                pc++;
+                pc += num.getValue() < 0x8000 ? 1 : 2;
                 break;
             }
             case CmdBase.Type.Expression: {
@@ -781,8 +781,17 @@ int assemble( CmdBase[] cmd ) {
             case CmdBase.Type.Number: {
                 CmdNumber num = cast(CmdNumber)c;
                 writef("0x%04X: ", c.locateAddr);
-                writefln("%04X", num.getValue());
-                setMem( num.locateAddr, num.getValue() );
+                ushort val = num.getValue();
+                if( val < 0x8000 ) {
+                    writefln("%04X", val);
+                    setMem( num.locateAddr, num.getValue() );
+                } else {
+                    writeln("BLA");
+                    const ushort inv = dictIdentifier["INV"];
+                    writefln("%04X %04X", val, inv);
+                    setMem( num.locateAddr, ~val );
+                    setMem( cast(ushort)(num.locateAddr+1), inv );
+                }
                 break;
             }
             case CmdBase.Type.Identifier: {
