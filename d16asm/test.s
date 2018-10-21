@@ -1,11 +1,11 @@
 ; uart test
-.equ uart 0xF000
+.equ uart 0x7000
 
 .org 0
 
 msg print call
 
-0xFFFF ; sim end
+.dw 0xFFFF ; sim end
 
 
 print:
