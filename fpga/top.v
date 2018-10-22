@@ -6,7 +6,7 @@ module top(
     o_addr,
     dat,
     
-    led
+    leds
 );
 
 input clk_50mhz;
@@ -14,7 +14,7 @@ input i_reset;
 output [15:0] o_addr;
 inout dat;
 
-output reg [7:0] led;
+output reg [7:0] leds;
 
 wire [15:0] addr_cpu;
 wire [15:0] o_dat_cpu;
@@ -48,13 +48,13 @@ always @(posedge clk)
 begin
     if(cyc_cpu && we_cpu) begin
         if( addr_cpu == 16'h7000 ) begin
-            led <= o_dat_cpu;
+            leds <= o_dat_cpu;
         end else if( addr_cpu >= 16'h1000 && addr_cpu < 16'h1080 ) begin
             ram[addr_cpu[6:0]] <= o_dat_cpu[15:0];
         end
     end
     if( i_reset ) begin
-        led <= 16'd0;
+        leds <= 16'd0;
     end
 end
 
