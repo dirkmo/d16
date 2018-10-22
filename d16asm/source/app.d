@@ -803,7 +803,12 @@ int assemble( CmdBase[] cmd ) {
             }
             case CmdBase.Type.Identifier: {
                 CmdIdentifier ident = cast(CmdIdentifier)c;
-                ushort value = dictIdentifier[ident.getName().toUpperCase] ;
+                string sIdent = ident.getName().toUpperCase;
+                if( sIdent !in dictIdentifier ) {
+                    Token t = ident.tokens[0];
+                    throw new Exception(format("ERROR: %s:%s  Unknown identifier %s.", t.line, t.col, sIdent ));
+                }
+                ushort value = dictIdentifier[sIdent];
                 writef("0x%04X: ", c.locateAddr);
                 writefln("%04X ", value);
                 setMem( ident.locateAddr, value );
