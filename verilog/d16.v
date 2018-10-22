@@ -26,7 +26,7 @@ output o_wb_we;
 output o_wb_cyc;
 
 // stacks
-reg [6:0] ds = 0; // Bit 6 ist Überlaufbit
+reg [6:0] ds = 0; // Bit 6 ist berlaufbit
 reg [15:0] D[63:0];
 wire [5:0] ds_idx = ds[5:0];
 wire [5:0] ds_TOSidx = ds_idx - 1; // D TOS index
@@ -34,7 +34,7 @@ wire [5:0] ds_NOSidx = ds_idx - 2; // D NOS index
 wire [15:0] T = D[ds_TOSidx];
 wire [15:0] N = D[ds_NOSidx];
 
-reg [6:0] rs = 0; // Bit 6 ist Überlaufbit
+reg [6:0] rs = 0; // Bit 6 ist berlaufbit
 reg [15:0] R[63:0];
 wire [5:0] rs_idx = rs[5:0];
 wire [5:0] rs_TOSidx = rs_idx - 1; // R TOS index
@@ -62,10 +62,12 @@ wire  [3:0] dst   = ir[7:4];
 wire  [3:0] aluop = ir[3:0];
 
 reg [15:0] alu;
+reg alu_carry;
 
 wire mem_read_access = itype && (src == 4'd4);
 wire mem_write_access = itype && (dst == 4'd6);
 wire mem_access = mem_read_access || mem_write_access;
+wire [15:0] bus;
 
 // wishbone bus
 assign o_wb_dat  = bus;
@@ -76,7 +78,7 @@ assign o_wb_cyc  = cpu_state == `CPUSTATE_EXECUTE ? mem_access :
 assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
 
 // bus source selection
-wire [15:0] bus =
+assign bus[15:0] =
         src == 4'd0 ? R[rs_TOSidx] :
         src == 4'd1 ? T :
         src == 4'd2 ? pc1 :
@@ -140,7 +142,7 @@ begin
                 4'd5: pc <= bus;
                 4'd6: begin
                     // mem <= bus
-                    // kommt zu spät!! geht hier nicht.
+                    // kommt zu spt!! geht hier nicht.
                     //wb_we <= 1'b1;
                     //wb_cyc <= 1'b1;
                 end
@@ -169,7 +171,6 @@ begin
     if( cpu_state == `CPUSTATE_RESET ) begin
         pc <= 16'd0;
         rs <= 7'd0;
-        ds <= 7'd0;
     end
 end
 
@@ -194,10 +195,12 @@ begin
             ds <= ds + 1;
         end
     end 
+    if( i_reset ) begin
+        ds <= 7'd0;
+    end
 end
 
 // alu
-reg alu_carry;
 always @(*)
 begin
     case( aluop )
