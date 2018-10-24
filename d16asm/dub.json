@@ -1,9 +1,0 @@
-{
-	"name": "d16asm",
-	"authors": [
-		"Dirk Moeller"
-	],
-	"description": "assembler for d16 cpu",
-	"copyright": "Copyright © 2018, Dirk Moeller",
-	"license": "GPL 2.0"
-}
