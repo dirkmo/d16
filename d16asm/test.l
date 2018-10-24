@@ -12,8 +12,8 @@ int linenum;
 [-+]?[0-9]+             { printf("Number %s\n", yytext); }
 [\+\-\*\/]              { printf("Operator: %s\n", yytext); }
 [\(\)]                  { printf("Klammer %s\n", yytext); }
-\n                      { linenum++; }
-[//|;].*                { printf("Comment\n"); }
+\n                      
+[//|;].*\n              { printf("Comment\n"); }
 \".+\"                  { printf("String literal %s\n", yytext); }
 .                       { printf("%s\n", yytext); }
 %%
