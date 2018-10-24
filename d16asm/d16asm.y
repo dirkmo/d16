@@ -11,22 +11,56 @@ extern int yylex();
 }
 
 %token <l> NUMBER
-%token <s> IDENTIFIER LITERAL
-%token EOL ORG EQU DW DROP JMP CALL BRAZ BRANZ BRAN BRAP RET
+%token <s> IDENTIFIER LITERAL LABEL
+%token EOL ORG EQU DW DROP JMP CALL RET
+
+
+%type<s> keyword
+
+%start S
 
 %%
 
-start: IDENTIFIER start { printf("identifier: %s\n", $1); }
-     | directive start 
-     | IDENTIFIER { printf("identifier: %s\n", $1); }
-     | directive
-     | EOL start
-     | EOL
-     ;
 
-directive: ORG NUMBER { printf("directive is ORG %ld\n", $2); }
+S:
+ | S line
+;
+
+line: EOL
+| line EOL
+| line keyword
+| line NUMBER
+| LABEL line
+;
 
 
+keyword: DROP { printf("%s\n", $$); }
+| JMP { printf("%s\n", $$); }
+| CALL { printf("%s\n", $$); }
+| RET { printf("%s\n", $$); }
+;
+
+
+/*
+line: EOL
+| directive EOL
+| expression line
+| keyword line
+| LABEL line
+;
+
+directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
+| EQU IDENTIFIER
+;
+
+expression: NUMBER
+| expression '+' expression
+| expression '-' expression
+| expression '*' expression
+| expression '/' expression
+| '(' expression ')'
+;
+*/
 %%
 
 void yyerror(char *s, ...) {
