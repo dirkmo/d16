@@ -1,33 +1,35 @@
+#include <iostream>
 #include "d16asm.h"
 
-mapT dictIdent;
-vector<Cell> cells;
-
-void addIdentifier(string name, uint16_t val) {
-    Identifier& id = dictIdent[name];
-    if( id.hasValue ) {
-        printf("ERROR: Identifier %s already defined\n", name.c_str());
-    } else {
-        Identifier newId(val);
-        dictIdent[name] = newId;
-    }
-}
+list<CmdBase*> cmdlist;
 
 void addIdentifier(string name) {
-    Identifier& id = dictIdent[name];
+    CmdIdentifier *ident = new CmdIdentifier(name);
+    cmdlist.push_back(ident);
 }
 
-void addNumber(uint16_t val, uint16_t pc) {
-    if( cells[pc].hasValue ) {
-        printf("ERROR: Address %d has already a value\n", pc);
-    } else {
-        cells[pc] = CellNumber(val);
-    }
+void addNumber(uint16_t val) {
+    auto num = new CmdNumber(val);
+    cmdlist.push_back(num);
+}
+
+void addLabel(string name) {
+    auto label = new CmdLabel(name);
+    cmdlist.push_back(label);
+}
+
+void addKeyword(CmdKeyword::Keyword keyword) {
+    auto key = new CmdKeyword(keyword);
+    cmdlist.push_back(key);
 }
 
 int main( int argc, char **argv ) {
-    Cell emptyCell;
-    cells.resize( 0x10000, emptyCell );
+    printf("d16 cpu assembler\n");
     yyparse();
+
+    for( auto cmd: cmdlist ) {
+        cout << cmd->getString() << endl;
+    }
+
     return 0;
 }

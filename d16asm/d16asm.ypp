@@ -25,17 +25,17 @@ S:
 
 line: EOL
     | keyword
-    | NUMBER { addNumber($1, pc++); }
-    | LABEL  { addIdentifier($1, pc); }
-    | IDENTIFIER { printf("Identifier: %s\n", $1); }
+    | NUMBER     { addNumber($1); }
+    | LABEL      { addLabel($1); }
+    | IDENTIFIER { addIdentifier($1); }
     | directive
     ;
 
 
-keyword: DROP { printf("Keyword DROP\n"); }
-       | JMP { printf("Keyword JMP\n"); }
-       | CALL { printf("Keyword CALL\n"); }
-       | RET { printf("Keyword RET\n"); }
+keyword: DROP { addKeyword(CmdKeyword::DROP); }
+       | JMP  { addKeyword(CmdKeyword::JMP); }
+       | CALL { addKeyword(CmdKeyword::CALL); }
+       | RET  { addKeyword(CmdKeyword::RET); }
        ;
 
 
