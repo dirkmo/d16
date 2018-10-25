@@ -15,8 +15,6 @@ extern int yylex();
 %token EOL ORG EQU DW DROP JMP CALL RET
 
 
-%type<s> keyword
-
 %start S
 
 %%
@@ -24,24 +22,33 @@ extern int yylex();
 
 S:
  | S line
-;
+ ;
 
 line: EOL
-| line EOL
-| line keyword
-| line NUMBER
-| LABEL line
-;
+ | keyword
+ | NUMBER { printf("%ld\n", $1); }
+ | LABEL
+ ;
 
 
-keyword: DROP { printf("%s\n", $$); }
-| JMP { printf("%s\n", $$); }
-| CALL { printf("%s\n", $$); }
-| RET { printf("%s\n", $$); }
-;
+keyword: DROP { printf("DROP\n"); }
+ | JMP { printf("JMP\n"); }
+ | CALL { printf("CALL\n"); }
+ | RET { printf("RET\n"); }
+ ;
 
 
 /*
+directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
+ ;
+equ: EQU IDENTIFIER equparams EOL
+ ;
+
+equparams: NUMBER
+         | LITERAL
+         | NUMBER ',' equparams
+         | LITERAL ',' equparams
+         ;
 line: EOL
 | directive EOL
 | expression line
@@ -49,9 +56,6 @@ line: EOL
 | LABEL line
 ;
 
-directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
-| EQU IDENTIFIER
-;
 
 expression: NUMBER
 | expression '+' expression
