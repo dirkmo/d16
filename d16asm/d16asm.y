@@ -26,21 +26,28 @@ S:
 
 line: EOL
  | keyword
- | NUMBER { printf("%ld\n", $1); }
- | LABEL
+ | NUMBER { printf("Number %ld\n", $1); }
+ | LABEL  { printf("Label %s\n", $1); }
+ | directive
  ;
 
 
-keyword: DROP { printf("DROP\n"); }
- | JMP { printf("JMP\n"); }
- | CALL { printf("CALL\n"); }
- | RET { printf("RET\n"); }
+keyword: DROP { printf("Keyword DROP\n"); }
+ | JMP { printf("Keyword JMP\n"); }
+ | CALL { printf("Keyword CALL\n"); }
+ | RET { printf("Keyword RET\n"); }
  ;
+
+directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
+ | equ
+ ;
+
+equ: EQU IDENTIFIER NUMBER { printf("directive is EQU %s %ld\n", $2, $3); }
+   | EQU IDENTIFIER LITERAL { printf("directive is EQU %s %s\n", $2, $3); }
+   ;
 
 
 /*
-directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
- ;
 equ: EQU IDENTIFIER equparams EOL
  ;
 
