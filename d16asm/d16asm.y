@@ -40,11 +40,21 @@ keyword: DROP { printf("Keyword DROP\n"); }
 
 directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
  | equ
+ | dw
  ;
 
-equ: EQU IDENTIFIER NUMBER { printf("directive is EQU %s %ld\n", $2, $3); }
-   | EQU IDENTIFIER LITERAL { printf("directive is EQU %s %s\n", $2, $3); }
+equ: EQU IDENTIFIER NUMBER EOL { printf("directive is EQU %s %ld\n", $2, $3); }
+   | EQU IDENTIFIER LITERAL EOL { printf("directive is EQU %s %s\n", $2, $3); }
    ;
+
+dw: DW dwdata { printf("directive is DW\n"); }
+  ;
+
+dwdata: NUMBER { printf("%ld ", $1); }
+      | LITERAL { printf("%s ", $1); }
+      | dwdata ',' NUMBER { printf("%ld, ", $3); }
+      | dwdata ',' LITERAL { printf("%s, ", $3); }
+      ;
 
 
 /*
