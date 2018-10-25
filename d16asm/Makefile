@@ -13,6 +13,6 @@ d16asm: d16asm.lpp d16asm.ypp d16asm.h
 	
 
 clean:
-	rm -f d16asm.lex.cpp d16asm.tab.cpp d16asm.tab.hpp d16asm
+	rm -f *.o d16asm.lex.cpp d16asm.tab.cpp d16asm.tab.hpp d16asm
 
 
