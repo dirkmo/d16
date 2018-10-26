@@ -26,4 +26,4 @@ done:   ret
 .ds 10
 
 
-msg: .dw "Hallo Welt!",0
+msg: .dw 1,"Hallo Welt!",0, uart, done

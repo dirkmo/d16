@@ -47,6 +47,7 @@
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_UNROUTES" xil_pn:name="top.unroutes" xil_pn:subbranch="Par"/>
     <file xil_pn:fileType="FILE_XPI" xil_pn:name="top.xpi"/>
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_XST" xil_pn:name="top.xst"/>
+    <file xil_pn:fileType="FILE_HTML" xil_pn:name="top_envsettings.html"/>
     <file xil_pn:fileType="FILE_NCD" xil_pn:name="top_guide.ncd" xil_pn:origination="imported"/>
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_MAP_REPORT" xil_pn:name="top_map.map" xil_pn:subbranch="Map"/>
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_MAP_REPORT" xil_pn:name="top_map.mrp" xil_pn:subbranch="Map"/>
@@ -57,6 +58,7 @@
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_PAD_EXCEL_REPORT" xil_pn:name="top_pad.csv" xil_pn:subbranch="Par"/>
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_PAD_TXT_REPORT" xil_pn:name="top_pad.txt" xil_pn:subbranch="Par"/>
     <file xil_pn:fileType="FILE_XRPT" xil_pn:name="top_par.xrpt"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_XST_PROJECT" xil_pn:name="top_stx_beh.prj"/>
     <file xil_pn:fileType="FILE_HTML" xil_pn:name="top_summary.html"/>
     <file xil_pn:fileType="FILE_FITTER_REPORT" xil_pn:name="top_summary.xml"/>
     <file xil_pn:fileType="FILE_WEBTALK" xil_pn:name="top_usage.xml"/>
@@ -96,7 +98,7 @@
       <status xil_pn:value="SuccessfullyRun"/>
       <status xil_pn:value="ReadyToRun"/>
     </transform>
-    <transform xil_pn:end_ts="1540235036" xil_pn:in_ck="-1796841497827910329" xil_pn:name="TRANEXT_xstsynthesize_spartan3" xil_pn:prop_ck="-2950734392276231286" xil_pn:start_ts="1540234931">
+    <transform xil_pn:end_ts="1540497952" xil_pn:in_ck="8843021042915056817" xil_pn:name="TRANEXT_xstsynthesize_spartan3" xil_pn:prop_ck="-2950734392276231286" xil_pn:start_ts="1540497834">
       <status xil_pn:value="AbortedRun"/>
       <status xil_pn:value="WarningsGenerated"/>
       <status xil_pn:value="ReadyToRun"/>
@@ -108,6 +110,7 @@
       <outfile xil_pn:name="top.prj"/>
       <outfile xil_pn:name="top.syr"/>
       <outfile xil_pn:name="top.xst"/>
+      <outfile xil_pn:name="top_stx_beh.prj"/>
       <outfile xil_pn:name="webtalk_pn.xml"/>
       <outfile xil_pn:name="xst"/>
     </transform>

@@ -15,7 +15,7 @@
   <version xil_pn:ise_version="14.7" xil_pn:schema_version="2"/>
 
   <files>
-    <file xil_pn:name="../../verilog/d16.v" xil_pn:type="FILE_VERILOG">
+    <file xil_pn:name="../verilog/d16.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="1"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
     </file>
@@ -345,7 +345,7 @@
     <!-- Do not hand-edit this section, as it will be overwritten when the    -->
     <!-- project is analyzed based on files automatically identified as       -->
     <!-- include files.                                                       -->
-    <file xil_pn:name="../ledtest.v" xil_pn:type="FILE_VERILOG"/>
+    <file xil_pn:name="ledtest.v" xil_pn:type="FILE_VERILOG"/>
   </autoManagedFiles>
 
 </project>

@@ -1,7 +1,7 @@
 %{
 #include "d16asm.h"
 
-uint16_t pc = 0;
+list<dwPayload> listPayload;
 
 %}
 
@@ -12,7 +12,11 @@ uint16_t pc = 0;
 
 %token <l> TOK_NUMBER
 %token <s> TOK_IDENTIFIER TOK_LITERAL TOK_LABEL
-%token TOK_EOL TOK_ORG TOK_EQU TOK_DW TOK_DS TOK_DROP TOK_JMP TOK_CALL TOK_RET
+%token TOK_EOL
+/* directives */
+%token TOK_ORG TOK_EQU TOK_DW TOK_DS
+/* keywords */
+%token TOK_DROP TOK_JMP TOK_CALL TOK_RET
 
 %start S
 
@@ -50,16 +54,16 @@ equ: TOK_EQU TOK_IDENTIFIER TOK_NUMBER TOK_EOL { addEqu( $2, $3 ); }
    ;
 
 
-dw: TOK_DW dwdata { addDw();}
+dw: TOK_DW dwdata { addDw(); listPayload.clear(); }
   ;
 
 
-dwdata: TOK_NUMBER { ; }
-      | TOK_LITERAL {;}
-      | TOK_IDENTIFIER {;}
-      | dwdata ',' TOK_NUMBER {;}
-      | dwdata ',' TOK_LITERAL {;}
-      | dwdata ',' TOK_IDENTIFIER {;}
+dwdata: TOK_NUMBER                  { listPayload.push_back( dwPayload($1) ); }
+      | TOK_LITERAL                 { listPayload.push_back( dwPayload($1) ); }
+      | TOK_IDENTIFIER              { listPayload.push_back( dwPayload($1) ); }
+      | dwdata ',' TOK_NUMBER       { listPayload.push_back( dwPayload($3) ); }
+      | dwdata ',' TOK_LITERAL      { listPayload.push_back( dwPayload($3) ); }
+      | dwdata ',' TOK_IDENTIFIER   { listPayload.push_back( dwPayload($3) ); }
       ;
 
 %%

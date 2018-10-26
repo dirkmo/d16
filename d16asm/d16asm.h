@@ -12,6 +12,24 @@
 
 using namespace std;
 
+struct dwPayload {
+    enum Type { Ident, Number };
+
+    dwPayload( string _id ) : type(Ident), sIdent(_id), value(0) {}
+    dwPayload( uint16_t num ) : type(Number), sIdent(""), value(num) {}
+    
+    string toString() {
+        if( type == Ident ) {
+            return sIdent;
+        }
+        return to_string(value);
+    }
+
+    Type type;
+    string sIdent;
+    uint16_t value;
+};
+
 
 /* interface to the lexer */
 extern int yylineno; /* from lexer */
@@ -19,16 +37,7 @@ void yyerror(char *s, ...);
 extern int yylex();
 extern int yyparse();
 
-struct Identifier {
-    Identifier() : hasValue(false) {
-        printf("New Identifier\n");
-    }
-    Identifier(uint16_t _val) : hasValue(true), val(_val) {
-        printf("New Identifier with val %d\n", _val);
-    }
-    bool hasValue;
-    uint16_t val;
-};
+extern list<dwPayload> listPayload;
 
 class CmdBase {
 public:
@@ -183,8 +192,16 @@ public:
         type = CmdBase::Dw;
     }
     virtual string getString() override {
-        return ".DW";
+        string s = ".DW";
+        for( auto it: payload ) {
+            s += " " + it.toString();
+        }
+        return s;
     }
+    void addPayload( const list<dwPayload>& list ) {
+        payload = list;
+    }
+    list<dwPayload> payload;
 };
 
 void addIdentifier(string name);

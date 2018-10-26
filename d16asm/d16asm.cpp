@@ -40,6 +40,7 @@ void addEqu( string name, uint16_t val ) {
 
 void addDw() {
     auto dw = new CmdDw();
+    dw->addPayload(listPayload);
     cmdlist.push_back(dw);
 }
 
