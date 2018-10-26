@@ -6,23 +6,23 @@
 
 %%
 
-\.org              { return ORG; }
-\.equ              { return EQU; }
-\.dw               { return DW; }
-\.ds               { return DS; }
-drop               { return DROP; }
-jmp                { return JMP; }
-call               { return CALL; }
-ret                { return RET; }
-^[A-Z_][A-Z0-9_]+: { yylval.s = strdup(yytext); return LABEL; }
-[A-Z_][A-Z0-9_]+   { yylval.s = strdup(yytext); return IDENTIFIER; }
-[-+]?0x[0-9A-Z]+   { yylval.l = strtol(yytext, NULL, 16); return NUMBER; }
-[-+]?[0-9]+        { yylval.l = strtol(yytext, NULL, 10); return NUMBER; }
+\.org              { return TOK_ORG; }
+\.equ              { return TOK_EQU; }
+\.dw               { return TOK_DW; }
+\.ds               { return TOK_DS; }
+drop               { return TOK_DROP; }
+jmp                { return TOK_JMP; }
+call               { return TOK_CALL; }
+ret                { return TOK_RET; }
+^[A-Z_][A-Z0-9_]+: { yylval.s = strdup(yytext); return TOK_LABEL; }
+[A-Z_][A-Z0-9_]+   { yylval.s = strdup(yytext); return TOK_IDENTIFIER; }
+[-+]?0x[0-9A-Z]+   { yylval.l = strtol(yytext, NULL, 16); return TOK_NUMBER; }
+[-+]?[0-9]+        { yylval.l = strtol(yytext, NULL, 10); return TOK_NUMBER; }
 [\-\+\*\/\(\),]    { return yytext[0]; }
-\n                 { return EOL; }
+\n                 { return TOK_EOL; }
 \/\/.*
 ;.*\n
-\".*\"             { yylval.s = strdup(yytext); return LITERAL; }
+\".*\"             { yylval.s = strdup(yytext); return TOK_LITERAL; }
 [ \t]
 .                  { printf("Unknown: '%s' (%d)\n", yytext, yytext[0]); }
 %%

@@ -10,9 +10,9 @@ uint16_t pc = 0;
 	char *s;
 }
 
-%token <l> NUMBER
-%token <s> IDENTIFIER LITERAL LABEL
-%token EOL ORG EQU DW DS DROP JMP CALL RET
+%token <l> TOK_NUMBER
+%token <s> TOK_IDENTIFIER TOK_LITERAL TOK_LABEL
+%token TOK_EOL TOK_ORG TOK_EQU TOK_DW TOK_DS TOK_DROP TOK_JMP TOK_CALL TOK_RET
 
 %start S
 
@@ -23,43 +23,43 @@ S:
  ;
 
 
-line: EOL
+line: TOK_EOL
     | keyword
-    | NUMBER     { addNumber($1); }
-    | LABEL      { addLabel($1); }
-    | IDENTIFIER { addIdentifier($1); }
+    | TOK_NUMBER     { addNumber($1); }
+    | TOK_LABEL      { addLabel($1); }
+    | TOK_IDENTIFIER { addIdentifier($1); }
     | directive
     ;
 
 
-keyword: DROP { addKeyword(CmdKeyword::DROP); }
-       | JMP  { addKeyword(CmdKeyword::JMP); }
-       | CALL { addKeyword(CmdKeyword::CALL); }
-       | RET  { addKeyword(CmdKeyword::RET); }
+keyword: TOK_DROP { addKeyword(CmdKeyword::DROP); }
+       | TOK_JMP  { addKeyword(CmdKeyword::JMP); }
+       | TOK_CALL { addKeyword(CmdKeyword::CALL); }
+       | TOK_RET  { addKeyword(CmdKeyword::RET); }
        ;
 
 
-directive: ORG NUMBER EOL { addOrg( $2 ); }
-         | DS NUMBER EOL  { addDs($2); }
+directive: TOK_ORG TOK_NUMBER TOK_EOL { addOrg( $2 ); }
+         | TOK_DS TOK_NUMBER TOK_EOL  { addDs($2); }
          | equ
          | dw
          ;
 
 
-equ: EQU IDENTIFIER NUMBER EOL { addEqu( $2, $3 ); }
+equ: TOK_EQU TOK_IDENTIFIER TOK_NUMBER TOK_EOL { addEqu( $2, $3 ); }
    ;
 
 
-dw: DW dwdata { addDw();}
+dw: TOK_DW dwdata { addDw();}
   ;
 
 
-dwdata: NUMBER { ; }
-      | LITERAL {;}
-      | IDENTIFIER {;}
-      | dwdata ',' NUMBER {;}
-      | dwdata ',' LITERAL {;}
-      | dwdata ',' IDENTIFIER {;}
+dwdata: TOK_NUMBER { ; }
+      | TOK_LITERAL {;}
+      | TOK_IDENTIFIER {;}
+      | dwdata ',' TOK_NUMBER {;}
+      | dwdata ',' TOK_LITERAL {;}
+      | dwdata ',' TOK_IDENTIFIER {;}
       ;
 
 %%
