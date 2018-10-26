@@ -12,7 +12,7 @@ uint16_t pc = 0;
 
 %token <l> NUMBER
 %token <s> IDENTIFIER LITERAL LABEL
-%token EOL ORG EQU DW DROP JMP CALL RET
+%token EOL ORG EQU DW DS DROP JMP CALL RET
 
 %start S
 
@@ -39,27 +39,27 @@ keyword: DROP { addKeyword(CmdKeyword::DROP); }
        ;
 
 
-directive: ORG NUMBER EOL { printf("directive is ORG %ld\n", $2); }
+directive: ORG NUMBER EOL { addOrg( $2 ); }
+         | DS NUMBER EOL  { addDs($2); }
          | equ
          | dw
          ;
 
 
-equ: EQU IDENTIFIER NUMBER EOL { printf("directive is EQU %s %ld\n", $2, $3); }
-   | EQU IDENTIFIER LITERAL EOL { printf("directive is EQU %s %s\n", $2, $3); }
+equ: EQU IDENTIFIER NUMBER EOL { addEqu( $2, $3 ); }
    ;
 
 
-dw: DW dwdata { printf("directive is DW\n"); }
+dw: DW dwdata { addDw();}
   ;
 
 
-dwdata: NUMBER { printf("%ld ", $1); }
-      | LITERAL { printf("%s ", $1); }
-      | IDENTIFIER { printf("%s ", $1); }
-      | dwdata ',' NUMBER { printf("%ld, ", $3); }
-      | dwdata ',' LITERAL { printf("%s, ", $3); }
-      | dwdata ',' IDENTIFIER { printf("%s ", $3); }
+dwdata: NUMBER { ; }
+      | LITERAL {;}
+      | IDENTIFIER {;}
+      | dwdata ',' NUMBER {;}
+      | dwdata ',' LITERAL {;}
+      | dwdata ',' IDENTIFIER {;}
       ;
 
 %%

@@ -9,6 +9,7 @@
 \.org              { return ORG; }
 \.equ              { return EQU; }
 \.dw               { return DW; }
+\.ds               { return DS; }
 drop               { return DROP; }
 jmp                { return JMP; }
 call               { return CALL; }

@@ -23,5 +23,7 @@ print:
 
 done:   ret
 
+.ds 10
+
 
 msg: .dw "Hallo Welt!",0

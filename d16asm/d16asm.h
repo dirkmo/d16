@@ -84,13 +84,45 @@ public:
 
 class CmdEqu : public CmdBase {
 public:
-    CmdEqu( uint16_t val ) {
+    CmdEqu( string _name, uint16_t val ) {
         type = CmdBase::Equ;
         value = val;
+        name = _name;
     }
     bool isExtended() {
         return value > 0x7FFF;
     }
+    virtual string getString() override {
+        return ".EQU " + name + " " + to_string(value);
+    }
+    string name;
+};
+
+class CmdOrg : public CmdBase {
+public:
+    CmdOrg( uint16_t _addr ) {
+        addr = _addr;
+    }
+
+    virtual string getString() override {
+        char buf[10];
+        sprintf(buf, ".ORG %u", addr);
+        return string(buf);
+    }
+};
+
+class CmdDs : public CmdBase {
+public:
+    CmdDs( uint16_t _size ) {
+        size = _size;
+    }
+
+    virtual string getString() override {
+        char buf[10];
+        sprintf(buf, ".DS %u", size);
+        return string(buf);
+    }
+    uint16_t size;
 };
 
 class CmdIdentifier : public CmdBase {
@@ -145,9 +177,25 @@ public:
     Keyword keyword;
 };
 
+class CmdDw : public CmdBase {
+public:
+    CmdDw() {
+        type = CmdBase::Dw;
+    }
+    virtual string getString() override {
+        return ".DW";
+    }
+};
+
 void addIdentifier(string name);
 void addNumber(uint16_t val);
 void addLabel(string name);
 void addKeyword(CmdKeyword::Keyword keyword);
+void addOrg( uint16_t addr );
+void addDs( uint16_t size );
+void addEqu( string name, uint16_t val );
+void addDw();
+
 
 #endif
+

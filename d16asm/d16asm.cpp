@@ -23,6 +23,26 @@ void addKeyword(CmdKeyword::Keyword keyword) {
     cmdlist.push_back(key);
 }
 
+void addOrg( uint16_t addr ) {
+    auto org = new CmdOrg(addr);
+    cmdlist.push_back(org);
+}
+
+void addDs( uint16_t size ) {
+    auto ds = new CmdDs(size);
+    cmdlist.push_back(ds);
+}
+
+void addEqu( string name, uint16_t val ) {
+    auto equ = new CmdEqu( name, val );
+    cmdlist.push_back(equ);
+}
+
+void addDw() {
+    auto dw = new CmdDw();
+    cmdlist.push_back(dw);
+}
+
 int main( int argc, char **argv ) {
     printf("d16 cpu assembler\n");
     yyparse();
