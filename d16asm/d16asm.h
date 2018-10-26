@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <list>
+#include <assert.h>
 
 using namespace std;
 
@@ -31,29 +32,70 @@ struct Identifier {
 
 class CmdBase {
 public:
-    enum Type { None, Number, Directive, Keyword, Ident, Label };
+    enum Type { None, Number, Equ, Ds, Dw, Org, Keyword, Ident, Label };
     
     virtual string getString() = 0;
+
+    virtual uint16_t getValue() {
+        return value;
+    }
     
     Type type;
+
+    uint16_t addr;
+
+    uint16_t value;
+    bool hasValue = false;
 };
 
 class CmdNumber : public CmdBase {
 public:
-    CmdNumber( uint16_t _val ) : value(_val) {
+    CmdNumber( uint16_t _val ) {
         type = CmdBase::Number;
+        value = _val;
+        hasValue = true;
     }
 
     virtual string getString() override {
         return to_string(value);
     }
+};
 
-    uint16_t value;
+class CmdLabel : public CmdBase {
+public:
+    CmdLabel( string label ) {
+        type = CmdBase::Label;
+        name = label;
+        if( name.back() == ':' ) {
+            name.pop_back();
+        }
+    }
+
+    virtual string getString() override {
+        return name;
+    }
+
+    bool isExtended() {
+        return value > 0x7FFF;
+    }
+
+    string name;
+};
+
+class CmdEqu : public CmdBase {
+public:
+    CmdEqu( uint16_t val ) {
+        type = CmdBase::Equ;
+        value = val;
+    }
+    bool isExtended() {
+        return value > 0x7FFF;
+    }
 };
 
 class CmdIdentifier : public CmdBase {
 public:
-    CmdIdentifier( string _name ) : name(_name) {
+    CmdIdentifier( string _name ) : name(_name), ref(NULL) {
         type = CmdBase::Ident;
     }
     
@@ -61,7 +103,24 @@ public:
         return name;
     }
 
+    void setReference(CmdBase *_ref) {
+        assert( ref == NULL );
+        ref = _ref;
+    }
+
+    bool isExtended() {
+        assert( ref );
+        if( ref->type == CmdBase::Equ ) {
+            CmdEqu* equ = static_cast<CmdEqu*>(ref);
+            return equ->isExtended();
+        } else if( ref->type == CmdBase::Label ) {
+            CmdLabel* label = static_cast<CmdLabel*>(ref);
+            return label->isExtended();
+        }
+    }
+
     string name;
+    CmdBase *ref;
 };
 
 class CmdKeyword : public CmdBase {
@@ -84,23 +143,6 @@ public:
     }
 
     Keyword keyword;
-};
-
-class CmdLabel : public CmdBase {
-public:
-    CmdLabel( string label ) {
-        type = CmdBase::Label;
-        name = label;
-        if( name.back() == ':' ) {
-            name.pop_back();
-        }
-    }
-
-    virtual string getString() override {
-        return name;
-    }
-
-    string name;
 };
 
 void addIdentifier(string name);
