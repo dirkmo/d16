@@ -1,19 +1,11 @@
 ; uart test
 .equ uart 0x7000
 
-.org 0
+.org 0x7FF0
 
 msg print call
 
 .dw 0xFFFF ; sim end
-
-.dw "A"
-
-.dw "AB"
-
-.dw "ABC"
-
-.dw "ABCD"
 
 print:
 ; TOS = string addr
