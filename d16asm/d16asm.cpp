@@ -1,5 +1,6 @@
 #include <iostream>
 #include "d16asm.h"
+#include "assemble.h"
 
 list<CmdBase*> cmdlist;
 
@@ -48,9 +49,7 @@ int main( int argc, char **argv ) {
     printf("d16 cpu assembler\n");
     yyparse();
 
-    for( auto cmd: cmdlist ) {
-        cout << cmd->getString() << endl;
-    }
+    assemble(cmdlist);
 
     return 0;
 }

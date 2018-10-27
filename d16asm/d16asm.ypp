@@ -16,7 +16,9 @@ list<dwPayload> listPayload;
 /* directives */
 %token TOK_ORG TOK_EQU TOK_DW TOK_DS
 /* keywords */
-%token TOK_DROP TOK_JMP TOK_CALL TOK_RET
+%token TOK_DROP TOK_JMP TOK_CALL TOK_RET TOK_DUP
+%token TOK_LOAD TOK_STORE TOK_JMPZ TOK_JMPNZ TOK_LSR TOK_LSL
+%token TOK_ADD TOK_ADC TOK_SUB TOK_SBC
 
 %start S
 
@@ -36,10 +38,21 @@ line: TOK_EOL
     ;
 
 
-keyword: TOK_DROP { addKeyword(CmdKeyword::DROP); }
-       | TOK_JMP  { addKeyword(CmdKeyword::JMP); }
-       | TOK_CALL { addKeyword(CmdKeyword::CALL); }
-       | TOK_RET  { addKeyword(CmdKeyword::RET); }
+keyword: TOK_DROP   { addKeyword(CmdKeyword::DROP); }
+       | TOK_JMP    { addKeyword(CmdKeyword::JMP); }
+       | TOK_CALL   { addKeyword(CmdKeyword::CALL); }
+       | TOK_RET    { addKeyword(CmdKeyword::RET); }
+       | TOK_DUP    { addKeyword(CmdKeyword::DUP); }
+       | TOK_LOAD   { addKeyword(CmdKeyword::LOAD); }
+       | TOK_STORE  { addKeyword(CmdKeyword::STORE); }
+       | TOK_JMPZ   { addKeyword(CmdKeyword::JMPZ); }
+       | TOK_JMPNZ  { addKeyword(CmdKeyword::JMPNZ); }
+       | TOK_LSR    { addKeyword(CmdKeyword::LSR); }
+       | TOK_LSL    { addKeyword(CmdKeyword::LSL); }
+       | TOK_ADD    { addKeyword(CmdKeyword::ADD); }
+       | TOK_ADC    { addKeyword(CmdKeyword::ADC); }
+       | TOK_SUB    { addKeyword(CmdKeyword::SUB); }
+       | TOK_SBC    { addKeyword(CmdKeyword::SBC); }
        ;
 
 

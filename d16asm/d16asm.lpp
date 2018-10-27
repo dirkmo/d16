@@ -6,24 +6,35 @@
 
 %%
 
-\.org              { return TOK_ORG; }
-\.equ              { return TOK_EQU; }
-\.dw               { return TOK_DW; }
-\.ds               { return TOK_DS; }
-drop               { return TOK_DROP; }
-jmp                { return TOK_JMP; }
-call               { return TOK_CALL; }
-ret                { return TOK_RET; }
-^[A-Z_][A-Z0-9_]+: { yylval.s = strdup(yytext); return TOK_LABEL; }
-[A-Z_][A-Z0-9_]+   { yylval.s = strdup(yytext); return TOK_IDENTIFIER; }
-[-+]?0x[0-9A-Z]+   { yylval.l = strtol(yytext, NULL, 16); return TOK_NUMBER; }
-[-+]?[0-9]+        { yylval.l = strtol(yytext, NULL, 10); return TOK_NUMBER; }
-[\-\+\*\/\(\),]    { return yytext[0]; }
-\n                 { return TOK_EOL; }
+\.org               { return TOK_ORG; }
+\.equ               { return TOK_EQU; }
+\.dw                { return TOK_DW; }
+\.ds                { return TOK_DS; }
+drop                { return TOK_DROP; }
+jmp                 { return TOK_JMP; }
+call                { return TOK_CALL; }
+ret                 { return TOK_RET; }
+dup                 { return TOK_DUP; }
+load                { return TOK_LOAD; }
+store               { return TOK_STORE; }
+jmpz                { return TOK_JMPZ; }
+jmpnz               { return TOK_JMPNZ; }
+lsr                 { return TOK_LSR; }
+lsl                 { return TOK_LSL; }
+add                 { return TOK_ADD; }
+adc                 { return TOK_ADC; }
+sub                 { return TOK_SUB; }
+sbc                 { return TOK_SBC; }
+^[A-Z_][A-Z0-9_]+:  { yylval.s = strdup(yytext); return TOK_LABEL; }
+[A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); return TOK_IDENTIFIER; }
+[-+]?0x[0-9A-Z]+    { yylval.l = strtol(yytext, NULL, 16); return TOK_NUMBER; }
+[-+]?[0-9]+         { yylval.l = strtol(yytext, NULL, 10); return TOK_NUMBER; }
+[\-\+\*\/\(\),]     { return yytext[0]; }
+\n                  { return TOK_EOL; }
 \/\/.*
 ;.*\n
-\".*\"             { yylval.s = strdup(yytext); return TOK_LITERAL; }
+\".*\"              { yylval.s = strdup(yytext); return TOK_LITERAL; }
 [ \t]
-.                  { printf("Unknown: '%s' (%d)\n", yytext, yytext[0]); }
+.                   { printf("Unknown: '%s' (%d)\n", yytext, yytext[0]); }
 %%
 

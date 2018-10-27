@@ -52,9 +52,10 @@ public:
     Type type;
 
     uint16_t addr;
-
+    
     uint16_t value;
     bool hasValue = false;
+    string name;
 };
 
 class CmdNumber : public CmdBase {
@@ -70,7 +71,11 @@ public:
     }
 };
 
-class CmdLabel : public CmdBase {
+class CmdReference : public CmdBase {
+    virtual bool isExtended() = 0;
+};
+
+class CmdLabel : public CmdReference {
 public:
     CmdLabel( string label ) {
         type = CmdBase::Label;
@@ -79,38 +84,35 @@ public:
             name.pop_back();
         }
     }
-
-    virtual string getString() override {
-        return name;
-    }
-
-    bool isExtended() {
+    virtual bool isExtended() override {
         return value > 0x7FFF;
     }
+    virtual string getString() override {
+        return name + ":";
+    }
 
-    string name;
 };
 
-class CmdEqu : public CmdBase {
+class CmdEqu : public CmdReference {
 public:
     CmdEqu( string _name, uint16_t val ) {
         type = CmdBase::Equ;
         value = val;
         name = _name;
     }
-    bool isExtended() {
+    virtual bool isExtended() override {
         return value > 0x7FFF;
     }
     virtual string getString() override {
         return ".EQU " + name + " " + to_string(value);
     }
-    string name;
 };
 
 class CmdOrg : public CmdBase {
 public:
     CmdOrg( uint16_t _addr ) {
         addr = _addr;
+        type = CmdBase::Org;
     }
 
     virtual string getString() override {
@@ -124,6 +126,7 @@ class CmdDs : public CmdBase {
 public:
     CmdDs( uint16_t _size ) {
         size = _size;
+        type = CmdBase::Ds;
     }
 
     virtual string getString() override {
@@ -136,8 +139,9 @@ public:
 
 class CmdIdentifier : public CmdBase {
 public:
-    CmdIdentifier( string _name ) : name(_name), ref(NULL) {
+    CmdIdentifier( string _name ) : ref(NULL) {
         type = CmdBase::Ident;
+        name = _name;
     }
     
     virtual string getString() override {
@@ -149,32 +153,43 @@ public:
         ref = _ref;
     }
 
-    bool isExtended() {
-        assert( ref );
-        if( ref->type == CmdBase::Equ ) {
-            CmdEqu* equ = static_cast<CmdEqu*>(ref);
-            return equ->isExtended();
-        } else if( ref->type == CmdBase::Label ) {
-            CmdLabel* label = static_cast<CmdLabel*>(ref);
-            return label->isExtended();
-        }
+    bool hasReference() {
+        return ref != NULL;
     }
 
-    string name;
+    bool isExtended() {
+        if( ref ) {
+            if( ref->type == CmdBase::Equ ) {
+                CmdEqu* equ = static_cast<CmdEqu*>(ref);
+                return equ->isExtended();
+            } else if( ref->type == CmdBase::Label ) {
+                CmdLabel* label = static_cast<CmdLabel*>(ref);
+                return label->isExtended();
+            }
+        }
+        // no reference known, assuming not extended
+        return false;
+    }
+
     CmdBase *ref;
 };
 
 class CmdKeyword : public CmdBase {
 public:
-    enum Keyword { DROP, JMP, CALL, RET };
+    enum Keyword {
+        DROP, JMP, CALL, RET, DUP, LOAD, STORE, JMPZ, JMPNZ, LSR, LSL,
+        ADD, ADC, SUB, SBC,
+    };
 
     CmdKeyword( Keyword key ) : keyword(key) {
         type = CmdBase::Keyword;
+        name = getString();
     }
 
     string getMnemonic() {
         const static string mnemonics[] = {
-            "DROP", "JMP", "CALL", "RET",
+            "DROP", "JMP", "CALL", "RET", "DUP", "LOAD", "STORE", "JMPZ", "JMPNZ", "LSR", "LSL", 
+            "ADD", "ADC", "SUB", "SBC",
         };
         return mnemonics[keyword];
     }
@@ -200,6 +215,9 @@ public:
     }
     void addPayload( const list<dwPayload>& list ) {
         payload = list;
+    }
+    uint16_t getSize() {
+        return 1; // TODO!!
     }
     list<dwPayload> payload;
 };
