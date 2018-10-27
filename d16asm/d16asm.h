@@ -225,7 +225,14 @@ public:
     }
     
     void addPayload( const list<dwPayload>& list ) {
-        
+        for(auto pl: list) {
+            if( pl.type == dwPayload::Number ) {
+            } else if( pl.type == dwPayload::Ident ) {
+            } else {
+                cerr << "ERROR: Unknown payload!" << endl;
+                assert(0);
+            }
+        }
     }
 
     uint16_t getSize() {
