@@ -72,11 +72,11 @@ dw: TOK_DW dwdata { addDw(); listPayload.clear(); }
 
 
 dwdata: TOK_NUMBER                  { listPayload.push_back( dwPayload($1) ); }
-      | TOK_LITERAL                 { listPayload.push_back( dwPayload($1) ); }
-      | TOK_IDENTIFIER              { listPayload.push_back( dwPayload($1) ); }
+      | TOK_LITERAL                 { listPayload.push_back( dwPayload($1, dwPayload::Literal) ); }
+      | TOK_IDENTIFIER              { listPayload.push_back( dwPayload($1, dwPayload::Ident) ); }
       | dwdata ',' TOK_NUMBER       { listPayload.push_back( dwPayload($3) ); }
-      | dwdata ',' TOK_LITERAL      { listPayload.push_back( dwPayload($3) ); }
-      | dwdata ',' TOK_IDENTIFIER   { listPayload.push_back( dwPayload($3) ); }
+      | dwdata ',' TOK_LITERAL      { listPayload.push_back( dwPayload($3, dwPayload::Literal) ); }
+      | dwdata ',' TOK_IDENTIFIER   { listPayload.push_back( dwPayload($3, dwPayload::Ident) ); }
       ;
 
 %%

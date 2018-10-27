@@ -7,6 +7,13 @@ msg print call
 
 .dw 0xFFFF ; sim end
 
+.dw "A"
+
+.dw "AB"
+
+.dw "ABC"
+
+.dw "ABCD"
 
 print:
 ; TOS = string addr

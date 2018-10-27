@@ -13,20 +13,33 @@
 using namespace std;
 
 struct dwPayload {
-    enum Type { Ident, Number };
+    enum Type { Ident, Number, Literal };
 
-    dwPayload( string _id ) : type(Ident), sIdent(_id), value(0) {}
-    dwPayload( uint16_t num ) : type(Number), sIdent(""), value(num) {}
+    dwPayload( string str, Type _type ) : value(0) {
+        assert( _type == Ident || _type == Literal );
+        type = _type;
+        if( type == Literal ) {
+            // remove quotes
+            literal = str.substr(1, str.length() - 2 );
+        } else {
+            ident = str;
+        }
+    }
+    dwPayload( uint16_t num ) : type(Number), literal(""), value(num) {}
     
     string toString() {
+        if( type == Literal ) {
+            return literal;
+        }
         if( type == Ident ) {
-            return sIdent;
+            return ident;
         }
         return to_string(value);
     }
 
     Type type;
-    string sIdent;
+    string literal;
+    string ident;
     uint16_t value;
 };
 
@@ -219,27 +232,28 @@ public:
     virtual string getString() override {
         string s = ".DW";
         for( auto it: payload ) {
-            s += " " + to_string(it);
+            s += " " + it.toString();
         }
         return s;
     }
     
     void addPayload( const list<dwPayload>& list ) {
-        for(auto pl: list) {
-            if( pl.type == dwPayload::Number ) {
-            } else if( pl.type == dwPayload::Ident ) {
-            } else {
-                cerr << "ERROR: Unknown payload!" << endl;
-                assert(0);
-            }
-        }
+        payload = list;
     }
 
     uint16_t getSize() {
-        return payload.size();
+        uint16_t size = 0;
+        for( auto it: payload ) {
+            if( it.type == dwPayload::Number || it.type == dwPayload::Ident ) {
+                size++;
+            } else {
+                size += (it.literal.length()+1) / 2;
+            }
+        }
+        return size;
     }
 
-    vector<uint16_t> payload;
+    list<dwPayload> payload;
 };
 
 void addIdentifier(string name);
