@@ -9,6 +9,7 @@
 #include <string>
 #include <list>
 #include <assert.h>
+#include "opcodes.h"
 
 using namespace std;
 
@@ -189,6 +190,16 @@ public:
         }
         // no reference known, assuming not extended
         return false;
+    }
+
+    uint16_t getValue() {
+        assert( ref );
+        return ref->getValue();
+    }
+
+    void getExtendedValue( uint16_t& val, uint16_t& inv ) {
+        val = ~ref->getValue();
+        inv = d16::INV;
     }
 
     CmdBase *ref;

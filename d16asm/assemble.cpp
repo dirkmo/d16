@@ -27,8 +27,8 @@ static void addReference( CmdBase *base ) {
     }
 }
 
-static void firstPass() {
-    for( auto c: cmdlist ) {
+static void pass( bool first ) {
+        for( auto c: cmdlist ) {
         switch( c->type ) {
             case CmdBase::Number: {
                 CmdNumber* num = static_cast<CmdNumber*>(c);
@@ -38,7 +38,9 @@ static void firstPass() {
             }
             case CmdBase::Equ: {
                 CmdEqu* equ = static_cast<CmdEqu*>(c);
-                defineIdentifier(equ);
+                if( first ) {
+                    defineIdentifier(equ);
+                }
                 break;
             }
             case CmdBase::Ds: {
@@ -73,7 +75,9 @@ static void firstPass() {
             case CmdBase::Label: {
                 CmdLabel* label = static_cast<CmdLabel*>(c);
                 label->addr = pc;
-                defineIdentifier(label);
+                if( first ) {
+                    defineIdentifier(label);
+                }
                 break;
             }
             default: {
@@ -81,6 +85,10 @@ static void firstPass() {
             }
         }
     }
+}
+
+static void firstPass() {
+    pass(true);
     // now everything has an address
     // all identifiers need references to EQU definitions or labels
     for( auto id: cmdlist ) {
