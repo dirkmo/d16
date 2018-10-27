@@ -1,5 +1,5 @@
 ; uart test
-.equ uart 0x7000
+.equ uart 0x9000
 
 .org 0x7FF0
 
@@ -15,7 +15,7 @@ print:
         dup  ; msg cc cc
         uart store ; msg cc
         8 lsr ; msg 0c
-        dup done jmpz ; msg 0c
+dummy:  dup done jmpz ; msg 0c
         uart store ; msg
         1 add ; msg+1
         print jmp

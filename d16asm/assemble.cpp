@@ -20,6 +20,7 @@ static void defineIdentifier(CmdBase *base) {
 }
 
 static void addReference( CmdBase *base ) {
+    // add label/equ reference to identifiers
     if( base->type == CmdBase::Ident ) {
         CmdIdentifier *id = static_cast<CmdIdentifier*>(base);
         CmdBase *ref = mapIdent.at(id->name);
@@ -27,7 +28,7 @@ static void addReference( CmdBase *base ) {
     }
 }
 
-static void pass( bool first ) {
+static void pass( bool first = false ) {
         for( auto c: cmdlist ) {
         switch( c->type ) {
             case CmdBase::Number: {
@@ -107,10 +108,35 @@ static void firstPass() {
     // every identifier has a reference
 }
 
+static void collectUpperRefs( list<CmdReference*>& list ) {
+    for( auto l: cmdlist ) {
+        if( (l->type == CmdBase::Label && l->addr >= 0x8000) ||
+            (l->type == CmdBase::Equ   && l->value >= 0x8000) ) {
+            list.push_back(static_cast<CmdLabel*>(l));
+        }
+    }
+}
+
 int assemble( list<CmdBase*> _lst ) {
     cmdlist = _lst;
     firstPass();
+    // sort by address
     cmdlist.sort( []( const CmdBase *a, const CmdBase *b ) { return a->addr < b->addr; } );
+    for( auto c: cmdlist ) {
+        printf("%04X: %s\n", c->addr, c->getString().c_str());
+    }
+    // collect labels and Equ's in upper memory region (>0x7FFF). References to these labels
+    // are 2 bytes long.
+    
+    cout << endl << "References to upper area:" << endl;
+    list<CmdReference*> upperRefs;
+    collectUpperRefs( upperRefs );
+    for( auto l: upperRefs ) {
+        cout << l->name << endl;
+    }
+    
+    // performing pass to correct reference sizes
+    pass();
     for( auto c: cmdlist ) {
         printf("%04X: %s\n", c->addr, c->getString().c_str());
     }
