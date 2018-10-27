@@ -102,7 +102,7 @@ static void firstPass() {
 int assemble( list<CmdBase*> _lst ) {
     cmdlist = _lst;
     firstPass();
-    cmdlist.sort( []( const CmdBase *a, CmdBase *b ) { return a->addr < b->addr; } );
+    cmdlist.sort( []( const CmdBase *a, const CmdBase *b ) { return a->addr < b->addr; } );
     for( auto c: cmdlist ) {
         printf("%04X: %s\n", c->addr, c->getString().c_str());
     }

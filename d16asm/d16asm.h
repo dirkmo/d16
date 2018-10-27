@@ -56,6 +56,7 @@ public:
     uint16_t value;
     bool hasValue = false;
     string name;
+    uint32_t lineno;
 };
 
 class CmdNumber : public CmdBase {
@@ -64,6 +65,7 @@ public:
         type = CmdBase::Number;
         value = _val;
         hasValue = true;
+        lineno = yylineno;
     }
 
     virtual string getString() override {
@@ -78,6 +80,7 @@ class CmdReference : public CmdBase {
 class CmdLabel : public CmdReference {
 public:
     CmdLabel( string label ) {
+        lineno = yylineno;
         type = CmdBase::Label;
         name = label;
         if( name.back() == ':' ) {
@@ -96,6 +99,7 @@ public:
 class CmdEqu : public CmdReference {
 public:
     CmdEqu( string _name, uint16_t val ) {
+        lineno = yylineno;
         type = CmdBase::Equ;
         value = val;
         name = _name;
@@ -111,6 +115,7 @@ public:
 class CmdOrg : public CmdBase {
 public:
     CmdOrg( uint16_t _addr ) {
+        lineno = yylineno;
         addr = _addr;
         type = CmdBase::Org;
     }
@@ -125,6 +130,7 @@ public:
 class CmdDs : public CmdBase {
 public:
     CmdDs( uint16_t _size ) {
+        lineno = yylineno;
         size = _size;
         type = CmdBase::Ds;
     }
@@ -140,6 +146,7 @@ public:
 class CmdIdentifier : public CmdBase {
 public:
     CmdIdentifier( string _name ) : ref(NULL) {
+        lineno = yylineno;
         type = CmdBase::Ident;
         name = _name;
     }
@@ -182,6 +189,7 @@ public:
     };
 
     CmdKeyword( Keyword key ) : keyword(key) {
+        lineno = yylineno;
         type = CmdBase::Keyword;
         name = getString();
     }
@@ -204,22 +212,27 @@ public:
 class CmdDw : public CmdBase {
 public:
     CmdDw() {
+        lineno = yylineno;
         type = CmdBase::Dw;
     }
+    
     virtual string getString() override {
         string s = ".DW";
         for( auto it: payload ) {
-            s += " " + it.toString();
+            s += " " + to_string(it);
         }
         return s;
     }
+    
     void addPayload( const list<dwPayload>& list ) {
-        payload = list;
+        
     }
+
     uint16_t getSize() {
-        return 1; // TODO!!
+        return payload.size();
     }
-    list<dwPayload> payload;
+
+    vector<uint16_t> payload;
 };
 
 void addIdentifier(string name);
