@@ -260,7 +260,7 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
             out << hex << "16'h" << addr << ": data[15:0] = 16'h" << memdump[addr] << ";" << endl;
         }
     }
-    // 
+    // header file output
     {
         ofstream out(fn+".h");
         out << hex << setw(4) << setfill('0');
@@ -272,6 +272,11 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
             out << "0x" << setw(4) << memdump[addr] << ", ";
         }
         out << endl << "};" << endl;
+    }
+    // binary output
+    {
+        ofstream out(fn+".bin", ofstream::binary);
+        out.write((const char*)(memdump.data() + min), (max-min+1) * 2);
     }
 
     return 0;
