@@ -213,30 +213,22 @@ public:
 
 class CmdKeyword : public CmdBase {
 public:
-    enum Keyword {
-        DROP, JMP, CALL, RET, DUP, LOAD, STORE, JMPZ, JMPNZ, LSR, LSL,
-        ADD, ADC, SUB, SBC,
-    };
 
-    CmdKeyword( Keyword key ) : keyword(key) {
+    CmdKeyword( d16::Opcode opc ) : opcode(opc) {
         lineno = yylineno;
         type = CmdBase::Keyword;
         name = getString();
     }
 
     string getMnemonic() {
-        const static string mnemonics[] = {
-            "DROP", "JMP", "CALL", "RET", "DUP", "LOAD", "STORE", "JMPZ", "JMPNZ", "LSR", "LSL", 
-            "ADD", "ADC", "SUB", "SBC",
-        };
-        return mnemonics[keyword];
+        return d16::mapOpcodes[opcode];
     }
 
     virtual string getString() override {
         return getMnemonic();
     }
 
-    Keyword keyword;
+    d16::Opcode opcode;
 };
 
 class CmdDw : public CmdBase {
@@ -276,7 +268,7 @@ public:
 void addIdentifier(string name);
 void addNumber(uint16_t val);
 void addLabel(string name);
-void addKeyword(CmdKeyword::Keyword keyword);
+void addKeyword(d16::Opcode opcode);
 void addOrg( uint16_t addr );
 void addDs( uint16_t size );
 void addEqu( string name, uint16_t val );

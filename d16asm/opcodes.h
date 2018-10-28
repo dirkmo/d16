@@ -2,20 +2,17 @@
 #define __OPCODES_H
 
 #include <string>
+#include <map>
 #include <stdint.h>
 
 namespace d16 {
 
-struct opcodes_t {
-    std::string mnemonic;
-    uint16_t op;
-};
-
-enum opcodes {
+enum Opcode {
     DUP     = 0xA110,
     SWAP    = 0x80A0,
     DROP    = 0xC120,
     JMPZ    = 0xE650,
+    JMPNZ   = 0xFFFF, //TBD
     JMPL    = 0xE750,
     JMP     = 0xC150,
     CALL    = 0xC190,
@@ -42,7 +39,7 @@ enum opcodes {
     LSR     = 0xC537,
 };
 
-extern const opcodes_t opcodes[];
+extern std::map<Opcode, std::string> mapOpcodes;
 
 }
 

@@ -19,8 +19,8 @@ void addLabel(string name) {
     cmdlist.push_back(label);
 }
 
-void addKeyword(CmdKeyword::Keyword keyword) {
-    auto key = new CmdKeyword(keyword);
+void addKeyword(d16::Opcode opcode) {
+    auto key = new CmdKeyword(opcode);
     cmdlist.push_back(key);
 }
 
