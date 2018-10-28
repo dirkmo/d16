@@ -198,7 +198,7 @@ public:
         return false;
     }
 
-    uint16_t getValue() {
+    virtual uint16_t getValue() override {
         assert( ref );
         return ref->getValue();
     }
