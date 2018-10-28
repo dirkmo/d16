@@ -262,6 +262,19 @@ public:
         return size;
     }
 
+    vector<uint16_t> getData() {
+        vector<uint16_t> dat;
+        for( auto p: payload ) {
+            switch(p.type) {
+                case dwPayload::Ident: ;
+                case dwPayload::Number: dat.push_back(p.value); break;
+                case dwPayload::Literal: ;
+                default:;
+            }
+        }
+        return dat;
+    }
+
     list<dwPayload> payload;
 };
 

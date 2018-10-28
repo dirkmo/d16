@@ -138,6 +138,12 @@ void createMemoryImage(vector<uint16_t>& memdump) {
             }
             case CmdBase::Dw: {
                 CmdDw* dw = static_cast<CmdDw*>(c);
+                auto dat = dw->getData();
+                uint16_t addr = dw->addr;
+                for( auto d: dat ) {
+                    memdump[addr] = d;
+                    addr++;
+                }
                 break;
             }
             case CmdBase::Keyword: {
@@ -157,9 +163,7 @@ void createMemoryImage(vector<uint16_t>& memdump) {
                 }
                 break;
             }
-            default: {
-                cout << "ERROR: Unknown Type " << c->type << endl;
-            }
+            default: ;
         }
     }
 
