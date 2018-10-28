@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-typedef map<string,CmdReference*> ReferenceMap;
+typedef map<string, CmdReference*> ReferenceMap;
 static ReferenceMap mapReferences;
 static list<CmdBase*> cmdlist;
 static uint16_t pc = 0;
@@ -24,9 +24,40 @@ static void addReference( CmdBase *base ) {
     // add label/equ reference to identifiers
     if( base->type == CmdBase::Ident ) {
         CmdIdentifier *id = static_cast<CmdIdentifier*>(base);
-        CmdBase *ref = mapReferences.at(id->name);
+        CmdReference *ref = mapReferences.at(id->name);
         id->setReference(ref);
     }
+}
+
+
+vector<uint16_t> getRawDataFromPayload(CmdDw* dw) {
+    vector<uint16_t> dat;
+    for( auto p: dw->payload ) {
+        switch(p.type) {
+            case dwPayload::Ident:
+                dat.push_back(mapReferences[p.ident]->getValue());
+                break;
+            case dwPayload::Number:
+                dat.push_back(p.value);
+                break;
+            case dwPayload::Literal: {
+                unsigned int i;
+                uint16_t v = 0;
+                for( i = 0; i < p.literal.length(); i++ ) {
+                     if( i % 2 == 0 ) {
+                         v = p.literal[i];
+                     } else {
+                         v |= p.literal[i] << 8;
+                         dat.push_back(v);
+                     }
+                }
+                if( i % 2 ) dat.push_back(v);
+                break;
+            }
+            default:;
+        }
+    }
+    return dat;
 }
 
 static void pass( bool first = false ) {
@@ -120,27 +151,36 @@ static int countExtendedLabels() {
     return count;
 }
 
-void printReferences(ofstream& out) {
+static void printReferences(ofstream& out) {
     out << "Symbols:" << endl;
     for( auto r: mapReferences ) {
         out << r.first << ": 0x" << r.second->addr << endl;
     }
 }
 
-void createMemoryImage(vector<uint16_t>& memdump) {
+static void minmax( uint16_t val, uint16_t& min, uint16_t& max) {
+    if( val < min ) min = val;
+    if( val > max ) max = val;
+}
+
+static void createMemoryImage(vector<uint16_t>& memdump, uint16_t& min, uint16_t& max) {
     memdump.resize(0x10000);
+    min = 0xFFFF;
+    max = 0;
     for( auto c: cmdlist ) {
         switch( c->type ) {
             case CmdBase::Number: {
                 CmdNumber* num = static_cast<CmdNumber*>(c);
                 memdump[num->addr] = num->getValue();
+                minmax(num->addr, min, max);
                 break;
             }
             case CmdBase::Dw: {
                 CmdDw* dw = static_cast<CmdDw*>(c);
-                auto dat = dw->getData();
+                auto dat = getRawDataFromPayload(dw);
                 uint16_t addr = dw->addr;
                 for( auto d: dat ) {
+                    minmax(addr, min, max);
                     memdump[addr] = d;
                     addr++;
                 }
@@ -148,14 +188,17 @@ void createMemoryImage(vector<uint16_t>& memdump) {
             }
             case CmdBase::Keyword: {
                 CmdKeyword* key = static_cast<CmdKeyword*>(c);
-                memdump[key->addr] = key->opcode;
+                memdump[key->addr] = key->value;
+                minmax(key->addr, min, max);
                 break;
             }
             case CmdBase::Ident: {
                 CmdIdentifier* id = static_cast<CmdIdentifier*>(c);
+                minmax(id->addr, min, max);
                 if( id->isExtended() ) {
                     uint16_t val, inv;
                     id->getExtendedValue(val, inv);
+                    minmax(id->addr+1, min, max);
                     memdump[id->addr] = val;
                     memdump[id->addr+1] = inv;
                 } else {
@@ -166,7 +209,6 @@ void createMemoryImage(vector<uint16_t>& memdump) {
             default: ;
         }
     }
-
 }
 
 int assemble( list<CmdBase*>& _lst, string fn ) {
@@ -208,8 +250,14 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
     }
 
     vector<uint16_t> memdump;
-    createMemoryImage(memdump);
+    uint16_t min, max;
+    createMemoryImage(memdump, min, max);
     {
+        ofstream out(fn+".v");
+        for( uint16_t addr = min; addr <= max; addr++ ) {
+            out << hex << "16'h" << addr << ": data[15:0] = 16'h" << memdump[addr] << ";" << endl;
+        }
+        //16'h0000: i_dat_cpu[15:0] = 16'h0001;
     }
 
     return 0;

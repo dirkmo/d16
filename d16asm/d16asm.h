@@ -112,6 +112,9 @@ public:
     virtual string getString() override {
         return name + ":";
     }
+    virtual uint16_t getValue() override {
+        return addr;
+    }
 
 };
 
@@ -177,7 +180,7 @@ public:
         return name;
     }
 
-    void setReference(CmdBase *_ref) {
+    void setReference(CmdReference *_ref) {
         ref = _ref;
     }
 
@@ -208,27 +211,27 @@ public:
         inv = d16::INV;
     }
 
-    CmdBase *ref;
+    CmdReference *ref;
 };
 
 class CmdKeyword : public CmdBase {
 public:
 
-    CmdKeyword( d16::OPCODES opc ) : opcode(opc) {
+    CmdKeyword( d16::OPCODES opc ) {
         lineno = yylineno;
         type = CmdBase::Keyword;
         name = getString();
+        value = opc;
     }
 
     string getMnemonic() {
-        return d16::mapOpcodes[opcode];
+        return d16::mapOpcodes[static_cast<d16::OPCODES>(value)];
     }
 
     virtual string getString() override {
         return getMnemonic();
     }
 
-    d16::OPCODES opcode;
 };
 
 class CmdDw : public CmdBase {
@@ -260,19 +263,6 @@ public:
             }
         }
         return size;
-    }
-
-    vector<uint16_t> getData() {
-        vector<uint16_t> dat;
-        for( auto p: payload ) {
-            switch(p.type) {
-                case dwPayload::Ident: ;
-                case dwPayload::Number: dat.push_back(p.value); break;
-                case dwPayload::Literal: ;
-                default:;
-            }
-        }
-        return dat;
     }
 
     list<dwPayload> payload;
