@@ -1,5 +1,6 @@
 #include "assemble.h"
 #include <iostream>
+#include <fstream>
 
 typedef map<string,CmdReference*> ReferenceMap;
 static ReferenceMap mapReferences;
@@ -108,20 +109,58 @@ static void firstPass() {
     // every identifier has a reference
 }
 
-int assemble( list<CmdBase*> _lst ) {
+static int countExtendedLabels() {
+    int count = 0;
+    for( auto c: cmdlist ) {
+        if( c->type ==  CmdBase::Label ) {
+            CmdLabel* l = static_cast<CmdLabel*>(c);
+            count += l->isExtended() ? 1 : 0;
+        }
+    }
+    return count;
+}
+
+void printReferences(ofstream& out) {
+    out << "Symbols:" << endl;
+    for( auto r: mapReferences ) {
+        out << r.first << ": 0x" << r.second->addr << endl;
+    }
+}
+
+int assemble( list<CmdBase*>& _lst, string fn ) {
     cmdlist = _lst;
     firstPass();
     // sort by address
     cmdlist.sort( []( const CmdBase *a, const CmdBase *b ) { return a->addr < b->addr; } );
-    for( auto c: cmdlist ) {
-        printf("%04X: %s\n", c->addr, c->getString().c_str());
-    }
     
     // performing passes to correct reference sizes until nothing changes anymore
-    
-    pass();
+    int last = 0;
+    int count = countExtendedLabels();
+    int passno = 2;
+    while( count != last ) {
+        cout << "Pass " << passno++ << endl;
+        last = count;
+        pass();
+        count = countExtendedLabels();
+    }
+
+    // outputting files
+    ofstream out(fn+".map");
+    out << std::hex;
+    printReferences(out);
+
+    out << endl;
+
+    out << "Program:" << endl;
+    for( auto c: _lst ) {
+        out << "0x" << c->addr << ": " << c->getString() << endl;
+    }
+
+    out << endl;
+
+    out << "Program (sorted by address):" << endl;
     for( auto c: cmdlist ) {
-        printf("%04X: %s\n", c->addr, c->getString().c_str());
+        out << "0x" << c->addr << ": " << c->getString() << endl;
     }
 
     return 0;

@@ -35,7 +35,9 @@ struct dwPayload {
         if( type == Ident ) {
             return ident;
         }
-        return to_string(value);
+        char buf[8];
+        sprintf(buf, "0x%04X", value);
+        return string(buf);
     }
 
     Type type;
@@ -83,7 +85,9 @@ public:
     }
 
     virtual string getString() override {
-        return to_string(value);
+        char buf[8];
+        sprintf(buf, "0x%04X", value);
+        return string(buf);
     }
 };
 
@@ -117,13 +121,16 @@ public:
         lineno = yylineno;
         type = CmdBase::Equ;
         value = val;
+        addr = val;
         name = _name;
     }
     virtual bool isExtended() override {
         return value > 0x7FFF;
     }
     virtual string getString() override {
-        return ".EQU " + name + " " + to_string(value);
+        char buf[16];
+        sprintf(buf, ".EQU %s 0x%04X", name.c_str(), value);
+        return string(buf);
     }
 };
 
@@ -137,7 +144,7 @@ public:
 
     virtual string getString() override {
         char buf[10];
-        sprintf(buf, ".ORG %u", addr);
+        sprintf(buf, ".ORG %04X", addr);
         return string(buf);
     }
 };
@@ -151,8 +158,8 @@ public:
     }
 
     virtual string getString() override {
-        char buf[10];
-        sprintf(buf, ".DS %u", size);
+        char buf[16];
+        sprintf(buf, ".DS 0x%04X", size);
         return string(buf);
     }
     uint16_t size;

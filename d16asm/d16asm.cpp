@@ -47,9 +47,19 @@ void addDw() {
 
 int main( int argc, char **argv ) {
     printf("d16 cpu assembler\n");
+    string outname = "d16output.s";
+
+    if( argc > 1 ) {
+        outname = argv[1];
+        extern FILE *yyin;
+        if( !(yyin = fopen(argv[1], "r")) ) {
+            perror(argv[1]);
+            return 1;
+        }
+    }
     yyparse();
 
-    assemble(cmdlist);
+    assemble(cmdlist, outname);
 
     return 0;
 }

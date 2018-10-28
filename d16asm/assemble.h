@@ -5,6 +5,6 @@
 
 using namespace std;
 
-int assemble( list<CmdBase*> _lst );
+int assemble( list<CmdBase*>& _lst, string fn );
 
 #endif
