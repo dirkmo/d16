@@ -103,7 +103,7 @@ public:
         }
     }
     virtual bool isExtended() override {
-        return value > 0x7FFF;
+        return addr > 0x7FFF;
     }
     virtual string getString() override {
         return name + ":";
@@ -171,7 +171,6 @@ public:
     }
 
     void setReference(CmdBase *_ref) {
-        assert( ref == NULL );
         ref = _ref;
     }
 
@@ -184,6 +183,8 @@ public:
             if( ref->type == CmdBase::Equ || ref->type == CmdBase::Label ) {
                 CmdReference* r = static_cast<CmdReference*>(ref);
                 return r->isExtended();
+            } else {
+                assert(0);
             }
         }
         // no reference known, assuming not extended

@@ -6,7 +6,7 @@
 msg print call
 
 .dw 0xFFFF ; sim end
-
+dummy
 print:
 ; TOS = string addr
         ; msg
@@ -23,6 +23,5 @@ dummy:  dup done jmpz ; msg 0c
 done:   ret
 
 .ds 10
-
 
 msg: .dw 1,"Hallo Welt!",0, uart, done

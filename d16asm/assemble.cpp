@@ -1,9 +1,9 @@
 #include "assemble.h"
 #include <iostream>
 
-typedef map<string,CmdReference*> IdentMap;
+typedef map<string,CmdReference*> ReferenceMap;
+static ReferenceMap mapReferences;
 static list<CmdBase*> cmdlist;
-static IdentMap mapIdent;
 static uint16_t pc = 0;
 
 static void defineIdentifier(CmdBase *base) {
@@ -11,8 +11,8 @@ static void defineIdentifier(CmdBase *base) {
         cout << "ERROR: Not an identifier definition " << base->name << endl;
         return;
     }
-    if( mapIdent.find(base->name) == mapIdent.end() ) {
-        mapIdent[base->name] = static_cast<CmdReference*>(base);
+    if( mapReferences.find(base->name) == mapReferences.end() ) {
+        mapReferences[base->name] = static_cast<CmdReference*>(base);
     } else {
         cout << "ERROR: Multiple definition of identifier " << base->name << endl;
         exit(1);
@@ -23,7 +23,7 @@ static void addReference( CmdBase *base ) {
     // add label/equ reference to identifiers
     if( base->type == CmdBase::Ident ) {
         CmdIdentifier *id = static_cast<CmdIdentifier*>(base);
-        CmdBase *ref = mapIdent.at(id->name);
+        CmdBase *ref = mapReferences.at(id->name);
         id->setReference(ref);
     }
 }
@@ -108,15 +108,6 @@ static void firstPass() {
     // every identifier has a reference
 }
 
-static void collectUpperRefs( list<CmdReference*>& list ) {
-    for( auto l: cmdlist ) {
-        if( (l->type == CmdBase::Label && l->addr >= 0x8000) ||
-            (l->type == CmdBase::Equ   && l->value >= 0x8000) ) {
-            list.push_back(static_cast<CmdLabel*>(l));
-        }
-    }
-}
-
 int assemble( list<CmdBase*> _lst ) {
     cmdlist = _lst;
     firstPass();
@@ -125,18 +116,9 @@ int assemble( list<CmdBase*> _lst ) {
     for( auto c: cmdlist ) {
         printf("%04X: %s\n", c->addr, c->getString().c_str());
     }
-    // collect labels and Equ's in upper memory region (>0x7FFF). References to these labels
-    // are 2 bytes long.
     
-    cout << endl << "References to upper area:" << endl;
-    list<CmdReference*> upperRefs;
-    collectUpperRefs( upperRefs );
-    for( auto l: upperRefs ) {
-        cout << l->name << endl;
-    }
+    // performing passes to correct reference sizes until nothing changes anymore
     
-    cout << endl;
-    // performing pass to correct reference sizes
     pass();
     for( auto c: cmdlist ) {
         printf("%04X: %s\n", c->addr, c->getString().c_str());
