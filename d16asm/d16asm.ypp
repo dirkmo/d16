@@ -38,21 +38,21 @@ line: TOK_EOL
     ;
 
 
-keyword: TOK_DROP   { addKeyword(d16::Opcode::DROP); }
-       | TOK_JMP    { addKeyword(d16::Opcode::JMP); }
-       | TOK_CALL   { addKeyword(d16::Opcode::CALL); }
-       | TOK_RET    { addKeyword(d16::Opcode::RET); }
-       | TOK_DUP    { addKeyword(d16::Opcode::DUP); }
-       | TOK_LOAD   { addKeyword(d16::Opcode::LOAD); }
-       | TOK_STORE  { addKeyword(d16::Opcode::STORE); }
-       | TOK_JMPZ   { addKeyword(d16::Opcode::JMPZ); }
-       | TOK_JMPNZ  { addKeyword(d16::Opcode::JMPNZ); }
-       | TOK_LSR    { addKeyword(d16::Opcode::LSR); }
-       | TOK_LSL    { addKeyword(d16::Opcode::LSL); }
-       | TOK_ADD    { addKeyword(d16::Opcode::ADD); }
-       | TOK_ADC    { addKeyword(d16::Opcode::ADC); }
-       | TOK_SUB    { addKeyword(d16::Opcode::SUB); }
-       | TOK_SBC    { addKeyword(d16::Opcode::SBC); }
+keyword: TOK_DROP   { addKeyword(d16::OPCODES::DROP); }
+       | TOK_JMP    { addKeyword(d16::OPCODES::JMP); }
+       | TOK_CALL   { addKeyword(d16::OPCODES::CALL); }
+       | TOK_RET    { addKeyword(d16::OPCODES::RET); }
+       | TOK_DUP    { addKeyword(d16::OPCODES::DUP); }
+       | TOK_LOAD   { addKeyword(d16::OPCODES::LOAD); }
+       | TOK_STORE  { addKeyword(d16::OPCODES::STORE); }
+       | TOK_JMPZ   { addKeyword(d16::OPCODES::JMPZ); }
+       | TOK_JMPNZ  { addKeyword(d16::OPCODES::JMPNZ); }
+       | TOK_LSR    { addKeyword(d16::OPCODES::LSR); }
+       | TOK_LSL    { addKeyword(d16::OPCODES::LSL); }
+       | TOK_ADD    { addKeyword(d16::OPCODES::ADD); }
+       | TOK_ADC    { addKeyword(d16::OPCODES::ADC); }
+       | TOK_SUB    { addKeyword(d16::OPCODES::SUB); }
+       | TOK_SBC    { addKeyword(d16::OPCODES::SBC); }
        ;
 
 

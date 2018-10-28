@@ -2,7 +2,7 @@
 
 namespace d16 {
 
-std::map<Opcode, std::string> mapOpcodes = {
+std::map<OPCODES, std::string> mapOpcodes = {
     { DUP, "DUP"        },
     { SWAP, "SWAP"      },
     { DROP, "DROP"      },

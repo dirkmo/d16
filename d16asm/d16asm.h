@@ -214,7 +214,7 @@ public:
 class CmdKeyword : public CmdBase {
 public:
 
-    CmdKeyword( d16::Opcode opc ) : opcode(opc) {
+    CmdKeyword( d16::OPCODES opc ) : opcode(opc) {
         lineno = yylineno;
         type = CmdBase::Keyword;
         name = getString();
@@ -228,7 +228,7 @@ public:
         return getMnemonic();
     }
 
-    d16::Opcode opcode;
+    d16::OPCODES opcode;
 };
 
 class CmdDw : public CmdBase {
@@ -268,7 +268,7 @@ public:
 void addIdentifier(string name);
 void addNumber(uint16_t val);
 void addLabel(string name);
-void addKeyword(d16::Opcode opcode);
+void addKeyword(d16::OPCODES opcode);
 void addOrg( uint16_t addr );
 void addDs( uint16_t size );
 void addEqu( string name, uint16_t val );

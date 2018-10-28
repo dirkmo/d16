@@ -19,7 +19,7 @@ void addLabel(string name) {
     cmdlist.push_back(label);
 }
 
-void addKeyword(d16::Opcode opcode) {
+void addKeyword(d16::OPCODES opcode) {
     auto key = new CmdKeyword(opcode);
     cmdlist.push_back(key);
 }
