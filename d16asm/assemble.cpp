@@ -30,7 +30,7 @@ static void addReference( CmdBase *base ) {
 }
 
 static void pass( bool first = false ) {
-        for( auto c: cmdlist ) {
+    for( auto c: cmdlist ) {
         switch( c->type ) {
             case CmdBase::Number: {
                 CmdNumber* num = static_cast<CmdNumber*>(c);
@@ -127,6 +127,44 @@ void printReferences(ofstream& out) {
     }
 }
 
+void createMemoryImage(vector<uint16_t>& memdump) {
+    memdump.resize(0x10000);
+    for( auto c: cmdlist ) {
+        switch( c->type ) {
+            case CmdBase::Number: {
+                CmdNumber* num = static_cast<CmdNumber*>(c);
+                memdump[num->addr] = num->getValue();
+                break;
+            }
+            case CmdBase::Dw: {
+                CmdDw* dw = static_cast<CmdDw*>(c);
+                break;
+            }
+            case CmdBase::Keyword: {
+                CmdKeyword* key = static_cast<CmdKeyword*>(c);
+                memdump[key->addr] = key->opcode;
+                break;
+            }
+            case CmdBase::Ident: {
+                CmdIdentifier* id = static_cast<CmdIdentifier*>(c);
+                if( id->isExtended() ) {
+                    uint16_t val, inv;
+                    id->getExtendedValue(val, inv);
+                    memdump[id->addr] = val;
+                    memdump[id->addr+1] = inv;
+                } else {
+                    memdump[id->addr] = id->getValue();
+                }
+                break;
+            }
+            default: {
+                cout << "ERROR: Unknown Type " << c->type << endl;
+            }
+        }
+    }
+
+}
+
 int assemble( list<CmdBase*>& _lst, string fn ) {
     cmdlist = _lst;
     firstPass();
@@ -145,22 +183,29 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
     }
 
     // outputting files
-    ofstream out(fn+".map");
-    out << std::hex;
-    printReferences(out);
+    {
+        ofstream out(fn+".map");
+        out << std::hex;
+        printReferences(out);
 
-    out << endl;
+        out << endl;
 
-    out << "Program:" << endl;
-    for( auto c: _lst ) {
-        out << "0x" << c->addr << ": " << c->getString() << endl;
+        out << "Program:" << endl;
+        for( auto c: _lst ) {
+            out << "0x" << c->addr << ": " << c->getString() << endl;
+        }
+
+        out << endl;
+
+        out << "Program (sorted by address):" << endl;
+        for( auto c: cmdlist ) {
+            out << "0x" << c->addr << ": " << c->getString() << endl;
+        }
     }
 
-    out << endl;
-
-    out << "Program (sorted by address):" << endl;
-    for( auto c: cmdlist ) {
-        out << "0x" << c->addr << ": " << c->getString() << endl;
+    vector<uint16_t> memdump;
+    createMemoryImage(memdump);
+    {
     }
 
     return 0;
