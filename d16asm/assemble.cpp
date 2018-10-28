@@ -1,6 +1,7 @@
 #include "assemble.h"
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 typedef map<string, CmdReference*> ReferenceMap;
 static ReferenceMap mapReferences;
@@ -252,12 +253,25 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
     vector<uint16_t> memdump;
     uint16_t min, max;
     createMemoryImage(memdump, min, max);
+    // verilog output
     {
         ofstream out(fn+".v");
         for( uint16_t addr = min; addr <= max; addr++ ) {
             out << hex << "16'h" << addr << ": data[15:0] = 16'h" << memdump[addr] << ";" << endl;
         }
-        //16'h0000: i_dat_cpu[15:0] = 16'h0001;
+    }
+    // 
+    {
+        ofstream out(fn+".h");
+        out << hex << setw(4) << setfill('0');
+        out << "uint16_t startaddr = 0x" << min << ";" << endl;
+        out << "uint16_t length = 0x" << max - min + 1 << ";" << endl;
+        out << "uint16_t data[] = {";
+        for( uint16_t addr = min; addr <= max; addr++ ) {
+            if( (addr % 8) == 0 ) out << endl;
+            out << "0x" << setw(4) << memdump[addr] << ", ";
+        }
+        out << endl << "};" << endl;
     }
 
     return 0;
