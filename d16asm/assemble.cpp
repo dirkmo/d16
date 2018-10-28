@@ -135,6 +135,7 @@ int assemble( list<CmdBase*> _lst ) {
         cout << l->name << endl;
     }
     
+    cout << endl;
     // performing pass to correct reference sizes
     pass();
     for( auto c: cmdlist ) {

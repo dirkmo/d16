@@ -88,6 +88,7 @@ public:
 };
 
 class CmdReference : public CmdBase {
+public:
     virtual bool isExtended() = 0;
 };
 
@@ -180,12 +181,9 @@ public:
 
     bool isExtended() {
         if( ref ) {
-            if( ref->type == CmdBase::Equ ) {
-                CmdEqu* equ = static_cast<CmdEqu*>(ref);
-                return equ->isExtended();
-            } else if( ref->type == CmdBase::Label ) {
-                CmdLabel* label = static_cast<CmdLabel*>(ref);
-                return label->isExtended();
+            if( ref->type == CmdBase::Equ || ref->type == CmdBase::Label ) {
+                CmdReference* r = static_cast<CmdReference*>(ref);
+                return r->isExtended();
             }
         }
         // no reference known, assuming not extended
