@@ -1,6 +1,6 @@
 `timescale 1ns / 1ns
 
-module uart(
+module uart_tx(
     i_clk,
     i_reset,
 
@@ -9,7 +9,6 @@ module uart(
     i_we,
     i_cyc,
 
-    rx,
     tx,
 
     o_int
@@ -22,7 +21,6 @@ input [7:0] i_dat;
 output [7:0] o_dat;
 input i_we;
 input i_cyc;
-input rx;
 output tx;
 output o_int;
 
@@ -30,8 +28,8 @@ output o_int;
 parameter SYS_CLK = 'd50_000_000;
 parameter BAUDRATE = 'd115200;
 
-`define TICK (SYS_CLK/BAUDRATE)
-
+//`define TICK (SYS_CLK/BAUDRATE)
+`define TICK 434
 
 //---------------------------------------------
 // bus slave
@@ -61,8 +59,8 @@ reg [8:0] baud_tx;
 
 wire tick_tx = (baud_tx[8:0] == `TICK);
 
-always @(posedge clk) begin
-	if(tx_start || tick) begin
+always @(posedge i_clk) begin
+	if(start_tx || tick_tx) begin
 		baud_tx <= 0;
 	end else begin
 		baud_tx <= baud_tx + 1;
@@ -79,7 +77,7 @@ localparam
     STARTBIT  = 4'd12;
 
 reg [3:0] state_tx = IDLE;
-wire bit_idx = state_tx[2:0];
+wire [2:0] bit_idx = state_tx[2:0];
 
 assign active_tx = (state_tx != IDLE);
 assign o_int = (state_tx == INTERRUPT);
