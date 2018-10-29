@@ -87,9 +87,9 @@ assign bus[15:0] =
         src == 4'd5 ? alu :
         src == 4'd6 ? N == 16'd0 ? T : pc1 : // JMPZ
         src == 4'd7 ? N[15] ? T : pc1 : // JMPL
-        src == 4'd8 ? N
+        src == 4'd8 ? N :
         src == 4'd9 ? N == 16'd0 ? pc1 : T : // JMPNZ
-                    : 16'd0;
+                      16'd0;
 
 // cond: used in dst block for conditional branches.
 // only push address on RS when cond == 1
