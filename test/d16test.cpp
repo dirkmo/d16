@@ -375,6 +375,18 @@ void setupTests(Test& tester) {
             .prog = { 0, INV, 6, BRAL, HALT, HALT, 0x1, HALT }
         }
     );
+    // 34 JMPNZ
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 5, .D = { 0x1234 }, .R = { } },
+            .prog = { 1, 4, JMPNZ, HALT, 0x1234, HALT }
+        }
+    );
+    // 35 JMPNZ
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { }, .R = { } },
+            .prog = { 0, 6, JMPNZ, HALT, 0x1234, HALT }
+        }
+    );
 }
 
 
