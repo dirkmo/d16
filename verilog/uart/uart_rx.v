@@ -4,7 +4,6 @@ module uart_rx(
     i_clk,
     i_reset,
 
-    i_dat,
     o_dat,
     i_addr,
     i_we,
@@ -18,12 +17,11 @@ module uart_rx(
 
 input i_clk;
 input i_reset;
-input [7:0] i_dat;
 output [7:0] o_dat;
 input i_addr;
 input i_we;
 input i_cyc;
-output tx;
+input rx;
 output reg o_int;
 
 
@@ -41,7 +39,6 @@ parameter BAUDRATE = 'd115200;
 
 reg [8:0] baud_rx;
 reg baud_start;
-reg rx_overflow_flag;
 
 wire baud_reset = (baud_rx[8:0] == `TICK);
 wire tick_rx = (baud_rx[8:0] == `TICK/2);
@@ -61,10 +58,10 @@ reg [7:0] rx_reg;
 reg data_avail;
 
 localparam
-    IDLE = 8,
-    STARTBIT = 9,
-    STOPBIT = 10,
-    INTERRUPT = 11,
+    IDLE = 10,
+    STARTBIT = 11,
+    STOPBIT = 8,
+    INTERRUPT = 9,
     RECEIVE = 0;
 
 reg [3:0] state_rx;
@@ -73,6 +70,7 @@ wire [2:0] bit_idx = state_rx[2:0];
 always @(posedge i_clk) begin
     baud_start <= 0;
     o_int <= 0;
+    data_avail <= 0;
     case( state_rx )
         IDLE: // waiting for start bit
             if( rx == 1'b0 ) begin
@@ -113,10 +111,10 @@ always @(posedge i_clk)
 begin
     if( data_avail ) begin
         // data received
-        r_status[1] <= r_status[0]; // overrun
-        r_status[0] <= 1'b1; // data available
+        // if already DA flag active --> overrun
+        r_status[1:0] <= { r_status[0], 1'b1 };
     end
-    if( i_cyc && addr == 1'b0 )
+    if( i_cyc && i_addr == 1'b0 && i_we == 1'b0 )
     begin
         // received data being read, clears overrun and data available flags
         r_status[1:0] <= 2'd0;
@@ -129,7 +127,7 @@ end
 //-------------------------------------------------
 // bus interface
 
-assign o_dat = addr ? { 6'd0, r_status } : rx_reg;
+assign o_dat = i_addr ? { 6'd0, r_status } : rx_reg;
 
 
 endmodule
