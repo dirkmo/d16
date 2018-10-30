@@ -10,21 +10,38 @@
 \.equ               { return TOK_EQU; }
 \.dw                { return TOK_DW; }
 \.ds                { return TOK_DS; }
-drop                { return TOK_DROP; }
-jmp                 { return TOK_JMP; }
-call                { return TOK_CALL; }
-ret                 { return TOK_RET; }
+
 dup                 { return TOK_DUP; }
-load                { return TOK_LOAD; }
-store               { return TOK_STORE; }
+swap                { return TOP_SWAP; }
+drop                { return TOK_DROP; }
 jmpz                { return TOK_JMPZ; }
 jmpnz               { return TOK_JMPNZ; }
-lsr                 { return TOK_LSR; }
-lsl                 { return TOK_LSL; }
+jmpl                { return TOK_JMPL; }
+jmp                 { return TOK_JMP; }
+braz                { return TOK_BRAZ; }
+branz               { return TOK_BRANZ; }
+bral                { return TOK_BRAL; }
+call                { return TOK_CALL; }
+ret                 { return TOK_RET; }
+pushrs              { return TOK_PUSHRS; }
+droprs              { return TOK_DROPRS; }
+poprs               { return TOK_POPRS; }
+load                { return TOK_LOAD; }
+store               { return TOK_STORE; }
+pushpc              { return TOK_PUSHPC; }
+pushsp              { return TOK_PUSHSP; }
+popsp               { return TOK_POPSP; }
 add                 { return TOK_ADD; }
 adc                 { return TOK_ADC; }
 sub                 { return TOK_SUB; }
 sbc                 { return TOK_SBC; }
+and                 { return TOK_AND; }
+or                  { return TOK_OR; }
+xor                 { return TOK_XOR; }
+inv                 { return TOK_INV; }
+lsl                 { return TOK_LSL; }
+lsr                 { return TOK_LSR; }
+
 ^[A-Z_][A-Z0-9_]+:  { yylval.s = strdup(yytext); return TOK_LABEL; }
 [A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); return TOK_IDENTIFIER; }
 [-+]?0x[0-9A-Z]+    { yylval.l = strtol(yytext, NULL, 16); return TOK_NUMBER; }

@@ -16,9 +16,11 @@ list<dwPayload> listPayload;
 /* directives */
 %token TOK_ORG TOK_EQU TOK_DW TOK_DS
 /* keywords */
-%token TOK_DROP TOK_JMP TOK_CALL TOK_RET TOK_DUP
-%token TOK_LOAD TOK_STORE TOK_JMPZ TOK_JMPNZ TOK_LSR TOK_LSL
-%token TOK_ADD TOK_ADC TOK_SUB TOK_SBC
+
+%token TOK_DUP TOP_SWAP TOK_DROP TOK_JMPZ TOK_JMPNZ TOK_JMPL TOK_JMP
+%token TOK_BRAZ TOK_BRANZ TOK_BRAL TOK_CALL TOK_RET TOK_PUSHRS TOK_DROPRS
+%token TOK_POPRS TOK_LOAD TOK_STORE TOK_PUSHPC TOK_PUSHSP TOK_POPSP TOK_ADD
+%token TOK_ADC TOK_SUB TOK_SBC TOK_AND TOK_OR TOK_XOR TOK_INV TOK_LSL TOK_LSR
 
 %start S
 
@@ -38,21 +40,36 @@ line: TOK_EOL
     ;
 
 
-keyword: TOK_DROP   { addKeyword(d16::OPCODES::DROP); }
-       | TOK_JMP    { addKeyword(d16::OPCODES::JMP); }
-       | TOK_CALL   { addKeyword(d16::OPCODES::CALL); }
-       | TOK_RET    { addKeyword(d16::OPCODES::RET); }
-       | TOK_DUP    { addKeyword(d16::OPCODES::DUP); }
-       | TOK_LOAD   { addKeyword(d16::OPCODES::LOAD); }
-       | TOK_STORE  { addKeyword(d16::OPCODES::STORE); }
-       | TOK_JMPZ   { addKeyword(d16::OPCODES::JMPZ); }
-       | TOK_JMPNZ  { addKeyword(d16::OPCODES::JMPNZ); }
-       | TOK_LSR    { addKeyword(d16::OPCODES::LSR); }
-       | TOK_LSL    { addKeyword(d16::OPCODES::LSL); }
-       | TOK_ADD    { addKeyword(d16::OPCODES::ADD); }
-       | TOK_ADC    { addKeyword(d16::OPCODES::ADC); }
-       | TOK_SUB    { addKeyword(d16::OPCODES::SUB); }
-       | TOK_SBC    { addKeyword(d16::OPCODES::SBC); }
+keyword: TOK_DUP     { addKeyword(d16::OPCODES::DUP); }
+       | TOP_SWAP    { addKeyword(d16::OPCODES::SWAP); }
+       | TOK_DROP    { addKeyword(d16::OPCODES::DROP); }
+       | TOK_JMPZ    { addKeyword(d16::OPCODES::JMPZ); }
+       | TOK_JMPNZ   { addKeyword(d16::OPCODES::JMPNZ); }
+       | TOK_JMPL    { addKeyword(d16::OPCODES::JMPL); }
+       | TOK_JMP     { addKeyword(d16::OPCODES::JMP); }
+       | TOK_BRAZ    { addKeyword(d16::OPCODES::BRAZ); }
+       | TOK_BRANZ   { addKeyword(d16::OPCODES::BRANZ); }
+       | TOK_BRAL    { addKeyword(d16::OPCODES::BRAL); }
+       | TOK_CALL    { addKeyword(d16::OPCODES::CALL); }
+       | TOK_RET     { addKeyword(d16::OPCODES::RET); }
+       | TOK_PUSHRS  { addKeyword(d16::OPCODES::PUSHRS); }
+       | TOK_DROPRS  { addKeyword(d16::OPCODES::DROPRS); }
+       | TOK_POPRS   { addKeyword(d16::OPCODES::POPRS); }
+       | TOK_LOAD    { addKeyword(d16::OPCODES::LOAD); }
+       | TOK_STORE   { addKeyword(d16::OPCODES::STORE); }
+       | TOK_PUSHPC  { addKeyword(d16::OPCODES::PUSHPC); }
+       | TOK_PUSHSP  { addKeyword(d16::OPCODES::PUSHSP); }
+       | TOK_POPSP   { addKeyword(d16::OPCODES::POPSP); }
+       | TOK_ADD     { addKeyword(d16::OPCODES::ADD); }
+       | TOK_ADC     { addKeyword(d16::OPCODES::ADC); }
+       | TOK_SUB     { addKeyword(d16::OPCODES::SUB); }
+       | TOK_SBC     { addKeyword(d16::OPCODES::SBC); }
+       | TOK_AND     { addKeyword(d16::OPCODES::AND); }
+       | TOK_OR      { addKeyword(d16::OPCODES::OR); }
+       | TOK_XOR     { addKeyword(d16::OPCODES::XOR); }
+       | TOK_INV     { addKeyword(d16::OPCODES::INV); }
+       | TOK_LSL     { addKeyword(d16::OPCODES::LSL); }
+       | TOK_LSR     { addKeyword(d16::OPCODES::LSR); }
        ;
 
 
