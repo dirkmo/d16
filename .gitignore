@@ -120,3 +120,4 @@ d16asm/d16asm.tab.cpp
 d16asm/d16asm.lex.cpp
 verilog/uart/uart_tx/
 verilog/uart/uart_rx/
+fpga/top.stx
