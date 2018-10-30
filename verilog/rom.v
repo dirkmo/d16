@@ -13,7 +13,7 @@ output [15:0] o_dat;
 always @(*)
 begin
     case(i_addr)
-`include "romdata.v"
+`include "romdata.inc"
         default: o_dat = 16'd0;
     endcase
 end
