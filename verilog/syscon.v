@@ -14,8 +14,8 @@ always @(*)
 begin
     o_slaveselect = 0;
     if( i_cyc ) begin
-        if( i_addr < 'h1000 )       o_slaveselect = 1;
-        else if( i_addr == 'h1000 ) o_slaveselect = 2;
+        if( i_addr < 16'hFF00 )            o_slaveselect = 1; // blkmem0
+        else if( i_addr[15:4] == 12'hFF0 ) o_slaveselect = 2; // uart0
     end
 end
 

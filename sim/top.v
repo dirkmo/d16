@@ -1,3 +1,5 @@
+/* verilator lint_off PINCONNECTEMPTY */
+
 `timescale 1ns / 1ps
 
 module top(
@@ -37,13 +39,13 @@ wire we;
 wire [`NSLAVES-1:0] slaveselect;
 
 wire [15:0] blkmem0_dat;
-wire [15:0] uart0_dat;
+wire [7:0] uart0_dat;
 
 wire blkmem0_cyc = slaveselect[0];
 wire uart0_cyc   = slaveselect[1];
 
 assign i_dat = slaveselect[0] ? blkmem0_dat :
-               slaveselect[1] ? uart0_dat :
+               slaveselect[1] ? { 8'd0, uart0_dat } :
                                 16'dX;
 
 syscon syscon0 (
@@ -54,7 +56,6 @@ syscon syscon0 (
 
 blkmem blkmem0 (
     .i_clk(i_clk),
-    .i_reset(i_reset),
     .i_dat(o_dat),
     .o_dat(blkmem0_dat),
     .i_addr(addr),
@@ -65,9 +66,9 @@ blkmem blkmem0 (
 uart uart0 (
     .i_clk(i_clk),
     .i_reset(i_reset),
-    .i_dat(o_dat),
+    .i_dat(o_dat[7:0]),
     .o_dat(uart0_dat),
-    .i_addr(addr),
+    .i_addr(addr[0]),
     .i_we(we),
     .i_cyc( uart0_cyc ),
     .rx(uart_rx),

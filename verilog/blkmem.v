@@ -4,7 +4,6 @@
 
 module blkmem(
     i_clk,
-    i_reset,
 
     i_dat,
     o_dat,
@@ -13,10 +12,9 @@ module blkmem(
     i_cyc
 );
 
-`define DEPTH 12
+`define DEPTH 16
 
 input i_clk;
-input i_reset;
 
 input  [15:0] i_dat;
 output reg [15:0] o_dat;

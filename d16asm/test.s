@@ -1,7 +1,7 @@
 ; uart test
-.equ uart 0x9000
+.equ uart 0xFF00
 
-.org 0x7FF0
+.org 0
 
 msg print call
 

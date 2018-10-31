@@ -80,99 +80,12 @@ public:
 		m_core->i_clk = 0;
 		m_core->eval();
 		if (m_trace) {
-			// This portion, though, is a touch different.
-			// After dumping our values as they exist on the
-			// negative clock edge ...
 			m_trace->dump(static_cast<vluint64_t>(10*m_tickcount+5));
-			//
-			// We'll also need to make sure we flush any I/O to
-			// the trace file, so that we can use the assert()
-			// function between now and the next tick if we want to.
 			m_trace->flush();
 		}
 	}
 
 	virtual bool done() {
         return Verilated::gotFinish();
-    }
-};
-
-class Wishbone16 {
-public:
-    uint32_t addr;
-    bool cyc;
-    bool we;
-    uint16_t dat;
-};
-
-class Uart {
-public:
-	Uart( uint16_t _base ) : base(_base) {}
-
-	void task( bool sel, Wishbone16 &bus ) {
-		if( sel ) {
-            if( bus.cyc && bus.addr == base ) {
-                if( bus.we ) {
-                    printf("---------------> UART write %02X (%c)\n", bus.dat & 0xFF, bus.dat & 0xFF);
-                } else {
-	                //printf("%lu: mem read %04X: %04X\n", tickcount(), addr, bus.dat);
-					printf("UART read\n");
-                }
-            }
-        }
-	}
-	uint16_t base;
-};
-
-class Memory16 {
-public:
-    uint16_t *mem = NULL;
-    uint16_t size;
-
-    Memory16(uint16_t _size) : size(_size) {
-        mem = new uint16_t[size];
-    }
-
-    ~Memory16() {
-        delete[] mem;
-    }
-
-	void clear() {
-		memset(mem, 0, size);
-	}
-
-	void init(vector<uint16_t>& dat) {
-		int i = 0;
-		for( auto d: dat) {
-			mem[i++] = d;
-		}
-	}
-
-    void write(uint16_t addr, uint16_t *dat, uint16_t len) {
-        while(len--) {
-            mem[addr++] = *dat++;
-			assert(addr < size);
-        }
-    }
-
-	uint16_t read(uint16_t addr) {
-		assert(addr < size);
-		return mem[addr];
-	}
-
-    void task(bool sel, Wishbone16 &bus) {
-        if( sel ) {
-            if( bus.cyc && bus.addr < size) {
-                uint32_t addr = bus.addr;
-                if( bus.we ) {
-                    mem[addr] = bus.dat;
-                    printf("%lu: mem write %04X: %04X\n", tickcount(), addr, bus.dat);
-                } else {
-                    bus.dat = 0;
-                    bus.dat = mem[addr];
-	                printf("%lu: mem read %04X: %04X\n", tickcount(), addr, bus.dat);
-                }
-            }
-        }
     }
 };
