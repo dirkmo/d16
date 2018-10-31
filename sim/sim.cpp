@@ -37,7 +37,7 @@ int main(int argc, char **argv, char **env) {
         }
 
         if (tb->m_core->top__DOT__cpu__DOT__cpu_state == 1) {
-            printf("pc: %04X\n", pc);
+            printf("(%d) pc: %04X\n", icount, pc);
         }
 
         tb->tick();
