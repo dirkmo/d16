@@ -261,7 +261,7 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
     {
         ofstream out(fn+".v");
         for( uint16_t addr = min; addr <= max; addr++ ) {
-            out << hex << "16'h" << addr << ": data[15:0] = 16'h" << memdump[addr] << ";" << endl;
+            out << hex << "16'h" << addr << ": o_dat[15:0] = 16'h" << memdump[addr] << ";" << endl;
         }
     }
     // header file output
