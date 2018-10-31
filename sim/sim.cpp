@@ -11,30 +11,13 @@ using namespace std;
 
 class sim : public TESTBENCH<Vtop> {
 public:
-
-    void print_ds() {
-        printf("D: <%d> ", m_core->d16__DOT__ds);
-        for ( int i=0; i<m_core->d16__DOT__ds; i++) {
-            printf("%04X ", m_core->d16__DOT__D[i]);
-        }
-        printf("\n");
-    }
-
-    void print_rs() {
-        printf("R: <%d> ", m_core->d16__DOT__rs);
-        for ( int i=0; i < m_core->d16__DOT__rs; i++) {
-            printf("%04X ", m_core->d16__DOT__R[i]);
-        }
-        printf("\n");
-    }
-
 };
 
 
 int main(int argc, char **argv, char **env) {
     Verilated::commandArgs(argc, argv);
 
-    top *tb = new top();
+    sim *tb = new sim();
 
 
     tb->reset();
@@ -46,14 +29,14 @@ int main(int argc, char **argv, char **env) {
 
     while(icount++ < 350) {
 
-        uint16_t pc = tb->m_core->d16__DOT__pc;
+        uint16_t pc = tb->m_core->top__DOT__cpu__DOT__pc;
 
-        if( mem.read(pc) == 0xFFFF ) {
+        if( tb->m_core->top__DOT__cpu__DOT__ir == 0xFFFF ) {
             printf("Simulation done.\n");
             break;
         }
 
-        if (tb->m_core->d16__DOT__cpu_state == 1) {
+        if (tb->m_core->top__DOT__cpu__DOT__cpu_state == 1) {
             printf("pc: %04X\n", pc);
         }
 

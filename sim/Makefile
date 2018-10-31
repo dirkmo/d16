@@ -16,7 +16,7 @@ d16sim:
 	cd d16sim/ && make -j4 -f Vtop.mk
 
 sim: d16sim
-	d16sim/Vd16sim
+	d16sim/Vtop
 
 wave: sim
 	gtkwave trace.vcd &
