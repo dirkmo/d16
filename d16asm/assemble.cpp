@@ -25,6 +25,10 @@ static void addReference( CmdBase *base ) {
     // add label/equ reference to identifiers
     if( base->type == CmdBase::Ident ) {
         CmdIdentifier *id = static_cast<CmdIdentifier*>(base);
+        if( mapReferences.find(id->name) == mapReferences.end() ) {
+            cout << "ERROR: Unknown identifier '" << id->name << "'" << endl;
+            exit(1);
+        }
         CmdReference *ref = mapReferences.at(id->name);
         id->setReference(ref);
     }

@@ -1,6 +1,6 @@
 .PHONY: clean all
 
-CPPFLAGS=-std=c++14 -Wall
+CPPFLAGS=-std=c++14 -Wall -g3
 LEXFLAGS=-Wno-sign-compare -Wno-write-strings -Wno-unused-function -Wno-deprecated-register
 
 all: d16asm
