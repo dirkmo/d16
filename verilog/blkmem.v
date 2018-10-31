@@ -1,8 +1,8 @@
+/* verilator lint_off PINCONNECTEMPTY */
+
 `timescale 1ns / 1ps
 
-module blkmem
-#(DEPTH=12)
-(
+module blkmem(
     i_clk,
     i_reset,
 
@@ -13,20 +13,30 @@ module blkmem
     i_cyc
 );
 
+`define DEPTH 12
+
 input i_clk;
 input i_reset;
 
 input  [15:0] i_dat;
-output [15:0] o_dat;
-input [DEPTH-1:0] i_addr;
+output reg [15:0] o_dat;
+input [`DEPTH-1:0] i_addr;
 input i_we;
 input i_cyc;
 
+reg [15:0] mem[2**`DEPTH-1:0];
 
-reg [15:0] mem[2**DEPTH-1:0];
-	
-assign o_dat = mem[i_addr];
+// read access with ROM
+always @(i_addr)
+begin
+    case(i_addr)
+`include "romdata.inc"
+        default: o_dat = mem[i_addr];
+    endcase
+end
 
+
+// write access
 always @(posedge i_clk)
 begin
     if( i_cyc && i_we ) begin
