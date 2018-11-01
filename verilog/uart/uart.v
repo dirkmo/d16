@@ -44,12 +44,14 @@ wire uart_tx_int;
 wire [7:0] uart_rx_dat;
 wire [7:0] uart_tx_dat;
 assign o_int[1:0] = { uart_tx_int, uart_rx_int };
+wire w_tx;
+assign tx = w_tx;
 
 // addr = 0: RW rx/tx reg
 // addr = 1: RO status (b2: tx active, b1: overrun, b0: data avail)
 assign o_dat = i_addr ? { 5'd0, uart_tx_dat[0], uart_rx_dat[1:0] }
                       : uart_rx_dat[7:0]; // addr = 0, received byte
-uart_rx #(.SYS_CLK(25_000_000), .BAUDRATE(115200)) Uart0_rx(
+uart_rx #(.SYS_CLK(SYS_CLK), .BAUDRATE(BAUDRATE)) Uart0_rx(
     .i_clk(i_clk),
     .i_reset(i_reset),
     .o_dat(uart_rx_dat),
@@ -60,14 +62,14 @@ uart_rx #(.SYS_CLK(25_000_000), .BAUDRATE(115200)) Uart0_rx(
     .o_int(uart_rx_int)
 );
 
-uart_tx #(.SYS_CLK(25_000_000), .BAUDRATE(115200)) Uart0_tx(
+uart_tx #(.SYS_CLK(SYS_CLK), .BAUDRATE(BAUDRATE)) Uart0_tx(
     .i_clk(i_clk),
     .i_reset(i_reset),
     .i_dat(i_dat),
     .o_dat(uart_tx_dat),
     .i_we(i_we),
     .i_cyc(uart_tx_cyc),
-    .tx(tx),
+    .tx(w_tx),
     .o_int(uart_tx_int)
 );
 

@@ -137,14 +137,14 @@ int main(int argc, char **argv, char **env) {
 
     while(icount++ < 350) {
 
-        uint16_t pc = tb->m_core->v__DOT__cpu__DOT__pc;
+        uint16_t pc = tb->m_core->top__DOT__cpu__DOT__pc;
 
-        if( tb->m_core->v__DOT__cpu__DOT__ir == 0xFFFF ) {
+        if( tb->m_core->top__DOT__cpu__DOT__ir == 0xFFFF ) {
             printf("Simulation done.\n");
             break;
         }
 
-        if (tb->m_core->v__DOT__cpu__DOT__cpu_state == 1) {
+        if (tb->m_core->top__DOT__cpu__DOT__cpu_state == 1) {
             printf("(%d) pc: %04X\n", icount, pc);
         }
 

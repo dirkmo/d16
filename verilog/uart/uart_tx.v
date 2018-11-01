@@ -25,7 +25,7 @@ output tx;
 output o_int;
 
 
-parameter SYS_CLK = 'd50_000_000;
+parameter SYS_CLK = 'd25_000_000;
 parameter BAUDRATE = 'd115200;
 
 localparam TICK = (SYS_CLK/BAUDRATE);
