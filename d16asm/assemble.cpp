@@ -223,7 +223,7 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
     cmdlist.sort( []( const CmdBase *a, const CmdBase *b ) { return a->addr < b->addr; } );
     
     // performing passes to correct reference sizes until nothing changes anymore
-    int last = 0;
+    int last = -1;
     int count = countExtendedLabels();
     int passno = 2;
     while( count != last ) {
