@@ -16,6 +16,9 @@ module uart(
     o_int
 );
 
+parameter SYS_CLK = 'd50_000_000;
+parameter BAUDRATE = 'd115200;
+
 input  i_clk;
 input  i_reset;
 input  i_addr;
@@ -46,7 +49,7 @@ assign o_int[1:0] = { uart_tx_int, uart_rx_int };
 // addr = 1: RO status (b2: tx active, b1: overrun, b0: data avail)
 assign o_dat = i_addr ? { 5'd0, uart_tx_dat[0], uart_rx_dat[1:0] }
                       : uart_rx_dat[7:0]; // addr = 0, received byte
-uart_rx Uart0_rx(
+uart_rx #(.SYS_CLK(1_000_000), .BAUDRATE(115200)) Uart0_rx(
     .i_clk(i_clk),
     .i_reset(i_reset),
     .o_dat(uart_rx_dat),
@@ -57,7 +60,7 @@ uart_rx Uart0_rx(
     .o_int(uart_rx_int)
 );
 
-uart_tx Uart0_tx(
+uart_tx #(.SYS_CLK(1_000_000), .BAUDRATE(115200)) Uart0_tx(
     .i_clk(i_clk),
     .i_reset(i_reset),
     .i_dat(i_dat),
