@@ -15,10 +15,10 @@ public:
     enum CONSTANTS {
         SYS_CLK   = 1000000,
         BAUDRATE  = 115200,
-        UART_TICK = (SYS_CLK / BAUDRATE),
+        UART_TICK = (SYS_CLK / BAUDRATE)+1,
     };
 
-    Uart( uint8_t *_tx, uint8_t *_rx, uint8_t *_clk) : tx(*_tx), rx(*_rx), clk(*_clk) {
+    Uart( uint8_t *_tx, const uint8_t *_rx, const uint8_t *_clk) : tx(*_tx), rx(*_rx), clk(*_clk) {
         PT_INIT(&tx_pt, NULL);
         PT_INIT(&rx_pt, NULL);
     }
@@ -52,7 +52,6 @@ public:
                     }
                     break;
                 case 1: // start bit
-                        printf("start bit OK\n");
                         if( baudcount >= UART_TICK / 2 ) {
                             dat_rx = 0;
                             state = rx ? 0 : 2;
@@ -67,7 +66,7 @@ public:
                     break;
                 case 10: // stop bit
                     if( baudcount == UART_TICK-1) {
-                        printf("UART-RX: %d\n", dat_rx);
+                        printf("UART-RX: %c (%d)\n", dat_rx, dat_rx);
                         if( rx == 1 ) {
                         } else {
                             printf("UART-RX: ERROR receiving data.\n");
@@ -82,8 +81,8 @@ public:
     }
 
     uint8_t& tx;
-    uint8_t& rx;
-    uint8_t& clk;
+    const uint8_t& rx;
+    const uint8_t& clk;
 
     uint8_t dat_rx;
     struct pt tx_pt;
@@ -92,8 +91,7 @@ public:
 
 class sim : public TESTBENCH<Vtop> {
 public:
-    sim() : uart(&m_core->uart_tx, &m_core->uart_rx, &m_core->i_clk) {
-
+    sim() : uart(&m_core->uart_rx, &m_core->uart_tx, &m_core->i_clk) {
     }
 
 	virtual void tick() override {
@@ -135,7 +133,7 @@ int main(int argc, char **argv, char **env) {
     tb->tick();
     int icount = 0;
 
-    while(icount++ < 350) {
+    while(icount++ < 3500) {
 
         uint16_t pc = tb->m_core->top__DOT__cpu__DOT__pc;
 
@@ -145,7 +143,7 @@ int main(int argc, char **argv, char **env) {
         }
 
         if (tb->m_core->top__DOT__cpu__DOT__cpu_state == 1) {
-            printf("(%d) pc: %04X\n", icount, pc);
+            //printf("(%d) pc: %04X\n", icount, pc);
         }
 
         tb->tick();

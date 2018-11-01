@@ -47,7 +47,6 @@ begin
     if( i_cyc && i_we && ~active_tx) begin
         tx_reg <= i_dat;
         start_tx <= 1;
-        $display("data to send: %d", tx_reg);
     end
 end
 
