@@ -35,28 +35,64 @@ public:
     }
 
     PT_THREAD(receive()) {
+        static int state = 0;
+        static int baudcount = 0;
         PT_BEGIN(&rx_pt);
         while(1) {
             PT_WAIT_UNTIL(&rx_pt, clk);
             // clk = 1
             PT_WAIT_WHILE(&rx_pt, clk);
             // clk = 0
+            baudcount = (baudcount + 1) % UART_TICK;
+            switch(state) {
+                case 0: // idle
+                    if( rx == 0 ) {
+                        baudcount = 0;
+                        state = 1;
+                    }
+                    break;
+                case 1: // start bit
+                        printf("start bit OK\n");
+                        if( baudcount >= UART_TICK / 2 ) {
+                            dat_rx = 0;
+                            state = rx ? 0 : 2;
+                            baudcount = 0;
+                        }
+                        break;
+                case 2 ... 9: // receive bits
+                    if( baudcount == UART_TICK-1) {
+                        dat_rx |= rx << (state-2);
+                        state++;
+                    }
+                    break;
+                case 10: // stop bit
+                    if( baudcount == UART_TICK-1) {
+                        printf("UART-RX: %d\n", dat_rx);
+                        if( rx == 1 ) {
+                        } else {
+                            printf("UART-RX: ERROR receiving data.\n");
+                        }
+                        state = 0;
+                    }
+                    break;
+                default: state = 0;
+            }
         }
         PT_END(&rx_pt);
     }
 
     uint8_t& tx;
     uint8_t& rx;
-
     uint8_t& clk;
 
+    uint8_t dat_rx;
     struct pt tx_pt;
     struct pt rx_pt;
 };
 
 class sim : public TESTBENCH<Vtop> {
 public:
-    sim() : uart(&m_core->uart_rx, &m_core->uart_tx, &m_core->i_clk) {
+    sim() : uart(&m_core->uart_tx, &m_core->uart_rx, &m_core->i_clk) {
 
     }
 
@@ -99,7 +135,7 @@ int main(int argc, char **argv, char **env) {
     tb->tick();
     int icount = 0;
 
-    while(icount++ < 35) {
+    while(icount++ < 350) {
 
         uint16_t pc = tb->m_core->v__DOT__cpu__DOT__pc;
 

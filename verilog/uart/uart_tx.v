@@ -43,9 +43,11 @@ reg [7:0] tx_reg; // data to send
 always @(posedge i_clk)
 begin
     start_tx <= 0;
+    //$display("i_cyc: %d, i_we: %d, active_tx: %d, %c", i_clk, i_we, active_tx, i_dat);
     if( i_cyc && i_we && ~active_tx) begin
         tx_reg <= i_dat;
         start_tx <= 1;
+        $display("data to send: %d", tx_reg);
     end
 end
 
