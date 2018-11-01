@@ -63,7 +63,7 @@ blkmem blkmem0 (
     .i_cyc( blkmem0_cyc )
 );
 
-uart uart0 (
+uart #(.SYS_CLK(1_000_000), .BAUDRATE(115200)) uart0 (
     .i_clk(i_clk),
     .i_reset(i_reset),
     .i_dat(o_dat[7:0]),
