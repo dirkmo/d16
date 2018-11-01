@@ -2,6 +2,7 @@
 #include "verilated.h"
 #include "testbench.h"
 #include "../include/d16.h"
+#include "../include/protothreads.h"
 #include <vector>
 #include <stdint.h>
 #include <stdio.h>
@@ -13,6 +14,13 @@ class sim : public TESTBENCH<Vtop> {
 public:
 };
 
+class Uart {
+public:
+    Uart( sim& _computer ) : computer(_computer) {
+    }
+
+    sim computer;
+};
 
 int main(int argc, char **argv, char **env) {
     Verilated::commandArgs(argc, argv);
@@ -27,7 +35,7 @@ int main(int argc, char **argv, char **env) {
     tb->tick();
     int icount = 0;
 
-    while(icount++ < 350) {
+    while(icount++ < 3500) {
 
         uint16_t pc = tb->m_core->v__DOT__cpu__DOT__pc;
 

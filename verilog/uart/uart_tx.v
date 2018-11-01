@@ -28,8 +28,7 @@ output o_int;
 parameter SYS_CLK = 'd50_000_000;
 parameter BAUDRATE = 'd115200;
 
-//`define TICK (SYS_CLK/BAUDRATE)
-`define TICK 434
+localparam TICK = (SYS_CLK/BAUDRATE);
 
 //---------------------------------------------
 // bus slave
@@ -57,7 +56,7 @@ end
 // tx baudrate generator
 reg [8:0] baud_tx;
 
-wire tick_tx = (baud_tx[8:0] == `TICK);
+wire tick_tx = (baud_tx[8:0] == TICK[8:0]);
 
 always @(posedge i_clk) begin
 	if(start_tx || tick_tx) begin
