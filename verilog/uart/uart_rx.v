@@ -37,7 +37,7 @@ parameter BAUDRATE = 'd115200;
 localparam TICK = (SYS_CLK/BAUDRATE);
 
 reg [8:0] baud_rx;
-reg baud_start;
+wire baud_start;
 
 wire baud_reset = (baud_rx[8:0] == TICK[8:0]);
 wire tick_rx = (baud_rx[8:0] == TICK[8:0]/2);
@@ -66,14 +66,18 @@ localparam
 reg [3:0] state_rx;
 wire [2:0] bit_idx = state_rx[2:0];
 
+assign baud_start = (state_rx == IDLE) && (rx == 1'b0);
+
+reg [7:0] rx_buf;
+
 always @(posedge i_clk) begin
-    baud_start <= 0;
+    //baud_start <= 0;
     o_int <= 0;
     data_avail <= 0;
     case( state_rx )
         IDLE: // waiting for start bit
             if( rx == 1'b0 ) begin
-                baud_start <= 1;
+                //baud_start <= 1;
                 state_rx <= STARTBIT;
             end
         STARTBIT:
@@ -88,11 +92,12 @@ always @(posedge i_clk) begin
             begin
                 o_int <= 1;
                 data_avail <= 1;
+                rx_reg <= rx_buf;
                 state_rx <= IDLE;
             end
         default:
             if( tick_rx ) begin
-                rx_reg[ bit_idx ] <= rx;
+                rx_buf[ bit_idx ] <= rx;
                 state_rx <= state_rx + 1;
             end
     endcase

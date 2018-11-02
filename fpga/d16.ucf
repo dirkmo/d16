@@ -1,15 +1,15 @@
-Net clk_50mhz PERIOD = 20000 ps;
-Net clk_50mhz LOC=T9;
+Net i_clk PERIOD = 20000 ps;
+Net i_clk LOC=T9;
 Net i_reset LOC=l14;
 
-//Net uart_rx LOC=t13;
-//Net uart_tx LOC=r13;
+Net uart_rx LOC=t13;
+Net uart_tx LOC=r13;
 
-Net leds<0> LOC=k12;
-Net leds<1> LOC=p14;
-Net leds<2> LOC=l12;
-Net leds<3> LOC=n14;
-Net leds<4> LOC=p13;
-Net leds<5> LOC=n12;
-Net leds<6> LOC=p12;
-Net leds<7> LOC=p11;
+//Net leds<0> LOC=k12;
+//Net leds<1> LOC=p14;
+//Net leds<2> LOC=l12;
+//Net leds<3> LOC=n14;
+//Net leds<4> LOC=p13;
+//Net leds<5> LOC=n12;
+//Net leds<6> LOC=p12;
+//Net leds<7> LOC=p11;
