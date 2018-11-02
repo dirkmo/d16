@@ -24,9 +24,6 @@ input i_cyc;
 input rx;
 output reg o_int;
 
-
-
-
 //-------------------------------------------------
 // Baud generator
 //
@@ -68,16 +65,14 @@ wire [2:0] bit_idx = state_rx[2:0];
 
 assign baud_start = (state_rx == IDLE) && (rx == 1'b0);
 
-reg [7:0] rx_buf;
+reg [7:0] rx_buf; // temp receive buffer
 
 always @(posedge i_clk) begin
-    //baud_start <= 0;
     o_int <= 0;
     data_avail <= 0;
     case( state_rx )
         IDLE: // waiting for start bit
             if( rx == 1'b0 ) begin
-                //baud_start <= 1;
                 state_rx <= STARTBIT;
             end
         STARTBIT:
