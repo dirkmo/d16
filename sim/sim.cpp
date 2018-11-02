@@ -70,6 +70,9 @@ int main(int argc, char **argv, char **env) {
 
         tb->tick();
 
+        if( tb->m_tickcount == 100 ) {
+            tb->uart.sendbyte('A');
+        }
     }
 
     return 0;

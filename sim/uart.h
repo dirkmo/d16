@@ -33,11 +33,11 @@ private:
     PT_THREAD(send()) {
         static int state = 0;
         static int baudcount = 0;
-        PT_BEGIN(&rx_pt);
+        PT_BEGIN(&tx_pt);
         while(1) {
-            PT_WAIT_UNTIL(&rx_pt, clk);
+            PT_WAIT_UNTIL(&tx_pt, clk);
             // clk = 1
-            PT_WAIT_WHILE(&rx_pt, clk);
+            PT_WAIT_WHILE(&tx_pt, clk);
             // clk = 0
             baudcount = (baudcount + 1) % UART_TICK;
             switch(state) {
@@ -53,10 +53,9 @@ private:
                     tx = 0;
                     if( baudcount == UART_TICK-1 ) {
                         state = 2;
-                        baudcount = 0;
                     }
                     break;
-                case 2 ... 9: // receive bits
+                case 2 ... 9: // send bits
                     tx = (dat_tx >> (state-2)) & 1;
                     if( baudcount == UART_TICK-1) {
                         state++;
@@ -71,7 +70,7 @@ private:
                 default: state = 0;
             }
         }
-        PT_END(&rx_pt);
+        PT_END(&tx_pt);
     }
 
     PT_THREAD(receive()) {
