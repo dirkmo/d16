@@ -2,50 +2,78 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
-#include <unistd.h>
-#include <cstdlib>
-#include <cstdio>
 #include <cstring>
+#include <unistd.h>
+#include <iostream>
+#include "server.h"
 
-#define BUF 1024
-#define UDS_FILE "/tmp/d16sim.uds"
+using namespace std;
 
-int main (void) {
-  int create_socket, new_socket;
-  socklen_t addrlen;
-  char buffer[BUF];
-  ssize_t size;
-  struct sockaddr_un address;
-  const int y = 1;
-  if((create_socket=socket (AF_LOCAL, SOCK_STREAM, 0)) > 0)
-    printf ("Socket wurde angelegt\n");
-  unlink(UDS_FILE);
-  address.sun_family = AF_LOCAL;
-  strcpy(address.sun_path, UDS_FILE);
-  if (bind ( create_socket,
-             (struct sockaddr *) &address,
-             sizeof (address)) != 0) {
-    printf( "Der Port ist nicht frei – belegt!\n");
-  }
-  listen (create_socket, 5);
-  addrlen = sizeof (struct sockaddr_in);
-  while (1) {
-     new_socket = accept ( create_socket,
-                           (struct sockaddr *) &address,
-                           &addrlen );
-     if (new_socket > 0)
-      printf ("Ein Client ist verbunden ...\n");
-     do {
-        printf ("Nachricht zum Versenden: ");
-        fgets (buffer, BUF, stdin);
-        send (new_socket, buffer, strlen (buffer), 0);
-        size = recv (new_socket, buffer, BUF-1, 0);
-        if( size > 0)
-           buffer[size] = '\0';
-        printf ("Nachricht empfangen: %s\n", buffer);
-     } while (strcmp (buffer, "quit\n") != 0);
-     close (new_socket);
-  }
-  close (create_socket);
-  return EXIT_SUCCESS;
+
+UDSServer::UDSServer( std::string fn ) {
+    m_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+    unlink( fn.c_str() );
+    m_sockaddr.sun_family = AF_LOCAL;
+    strcpy(m_sockaddr.sun_path, fn.c_str());
+    int ret = bind( m_socket_fd, (struct sockaddr *)&m_sockaddr, sizeof(m_sockaddr) );
+    if( ret != 0 ) {
+        throw runtime_error("ERROR: Cannot bind to socket");
+    }
+    listen( m_socket_fd, 0 );
+}
+
+UDSServer::~UDSServer() {
+    if( m_client_fd > -1 ) {
+        close(m_client_fd);
+    }
+    if( m_socket_fd > -1 ) {
+        close(m_socket_fd);
+    }
+}
+
+void UDSServer::wait() {
+    socklen_t addrlen;
+    m_client_fd = accept ( m_socket_fd, (struct sockaddr *) &m_sockaddr, &addrlen );
+}
+
+bool UDSServer::send( const std::vector<uint8_t> data ) {
+    if( m_client_fd > -1 ) {
+        return ::send (m_client_fd, data.data(), data.size(), 0) == data.size();
+    }
+    return false;
+}
+
+bool UDSServer::receive( std::vector<uint8_t>& data ) {
+    bool rec = false;
+    if( m_client_fd > -1 ) {
+        uint8_t buf[64];
+        ssize_t size;
+        data.clear();
+        while( (size = recv( m_client_fd, &buf, sizeof(buf), MSG_DONTWAIT ) ) > 0 ) {
+            for( int i = 0 ; i < size; i++ ) {
+                data.push_back(buf[i]);
+            }
+            rec |= size > 0;
+        }
+    }
+    return rec;
+}
+
+int main() {
+    cout << "d16sim console" << endl;
+    UDSServer uds("/tmp/d16sim.uds");
+    cout << "Waiting for connection to simulator...";
+    uds.wait();
+    cout << "connected." << endl;
+    vector<uint8_t> data;
+    while(1) {
+        usleep( 1000 );
+        if( uds.receive( data ) ) {
+            for( auto d: data ) {
+                cout << d;
+            }
+            cout << flush;
+        }
+    }
+    return 0;
 }

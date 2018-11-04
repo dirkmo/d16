@@ -1,9 +1,11 @@
 #ifndef __UART_H
 #define __UART_H
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
+#include <iostream>
 #include "../include/protothreads.h"
+#include "client.h"
 
 class Uart {
 public:
@@ -13,7 +15,8 @@ public:
         UART_TICK = (SYS_CLK / BAUDRATE)+1,
     };
 
-    Uart( uint8_t *_tx, const uint8_t *_rx, const uint8_t *_clk) : tx(*_tx), rx(*_rx), clk(*_clk) {
+    Uart( uint8_t *_tx, const uint8_t *_rx, const uint8_t *_clk) : tx(*_tx), rx(*_rx), clk(*_clk),
+    uds("/tmp/d16sim.uds") {
         PT_INIT(&tx_pt, NULL);
         PT_INIT(&rx_pt, NULL);
         tx = 1;
@@ -105,8 +108,9 @@ private:
                     break;
                 case 10: // stop bit
                     if( baudcount == UART_TICK-1) {
-                        printf("UART-RX: %c (%d)\n", dat_rx, dat_rx);
+                        std::cout << "Received: " << dat_rx << std::endl;
                         if( rx == 1 ) {
+                            uds.send( { dat_rx } );
                         } else {
                             printf("UART-RX: ERROR receiving data.\n");
                         }
@@ -129,6 +133,8 @@ private:
 
     struct pt tx_pt;
     struct pt rx_pt;
+
+    UDSClient uds;
 };
 
 #endif

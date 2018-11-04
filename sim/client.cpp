@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -21,6 +22,13 @@ UDSClient::UDSClient( string fn ) {
     if( ret != 0) {
         close(m_socket_fd);
         m_socket_fd = -1;
+    }
+    cout << "UDSClient connected." << endl;
+}
+
+UDSClient::~UDSClient() {
+    if( m_socket_fd > -1 ) {
+        close(m_socket_fd);
     }
 }
 

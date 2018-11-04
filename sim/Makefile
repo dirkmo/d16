@@ -11,11 +11,17 @@ endif
 
 all: d16sim
 
-d16sim:
-	verilator $(VFLAGS) top.v sim.cpp
+client.o: client.cpp client.h
+	g++ -Wall -c client.cpp -o client.o
+
+d16sim: client.o
+	verilator $(VFLAGS) top.v ../client.o sim.cpp
 	cd d16sim/ && make -j4 -f Vtop.mk
 
-sim: d16sim
+server: server.cpp server.h
+	g++ -Wall server.cpp -o server
+
+sim: d16sim server
 	d16sim/Vtop
 
 wave: sim
