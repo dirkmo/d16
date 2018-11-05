@@ -144,3 +144,10 @@ sim/d16sim/Vtop__verFiles.dat
 sim/d16sim/Vtop_classes.mk
 sim/d16sim/sim.d
 sim/d16sim/verilated.d
+fpga/ledtest.s.map
+fpga/ledtest.s.bin
+fpga/ledtest.s.h
+fpga/ledtest.s.v
+fpga/top_xst.xrpt
+sim/client
+sim/server

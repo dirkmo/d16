@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <mutex>
 
 class UDSServer {
 public:
@@ -24,6 +25,7 @@ private:
     std::thread m_thread;
     bool m_bRunning = false;
     std::vector<uint8_t> m_vRecData;
+    std::mutex m_mutex;
 };
 
 #endif

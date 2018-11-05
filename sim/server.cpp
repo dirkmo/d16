@@ -5,7 +5,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <iostream>
-#include <thread>
+
 #include "server.h"
 
 using namespace std;
@@ -40,23 +40,27 @@ void UDSServer::start() {
 void UDSServer::threadfunc() {
     uint8_t buf[128];
     m_bRunning = true;
-    cout << "hallo" << endl;
     while(m_bRunning) {
         socklen_t addrlen;
-        cout << "Waiting for connection to simulator...";
+        //cout << endl << "Ready." << endl;
         m_client_fd = accept ( m_socket_fd, (struct sockaddr *) &m_sockaddr, &addrlen );
-        cout << "connected." << endl;
+        //cout << "connected." << endl;
         while( m_client_fd > -1 ) {
             ssize_t size = recv( m_client_fd, buf, sizeof(buf), 0 );
             if( size > 0 ) {
-                for( auto d: buf ) {
-                    m_vRecData.push_back(d);
+                m_mutex.lock();
+                for( ssize_t i = 0; i<size; i++ ) {
+                    m_vRecData.push_back(buf[i]);
                 }
+                m_mutex.unlock();
+            } else  {
+                close(m_client_fd);
+                m_client_fd = -1;
+                //cout << endl << "Disconnected." << endl;
             }
         }
     }
 }
-
 
 bool UDSServer::send( const std::vector<uint8_t> data ) {
     if( m_client_fd > -1 ) {
@@ -66,11 +70,15 @@ bool UDSServer::send( const std::vector<uint8_t> data ) {
 }
 
 bool UDSServer::receive( std::vector<uint8_t>& data ) {
+    bool ret = false;
+    m_mutex.lock();
     if( m_vRecData.size() ) {
         data = m_vRecData;
-        return true;
+        m_vRecData.clear();
+        ret = true;
     }
-    return false;
+    m_mutex.unlock();
+    return ret;
 }
 
 int main() {

@@ -47,3 +47,10 @@ bool UDSClient::receive( vector<uint8_t>& data ) {
     }
     return data.size() > 0;
 }
+
+#if 0
+int main() {
+    UDSClient uds("/tmp/d16sim.uds");
+    uds.send( { 'T', 'e', 's', 't' } );
+}
+#endif
