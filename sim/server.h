@@ -9,6 +9,8 @@ class UDSServer {
 public:
     UDSServer( std::string fn );
     ~UDSServer();
+
+    void start();
     
     bool send( const std::vector<uint8_t> data );
     bool receive( std::vector<uint8_t>& data );
