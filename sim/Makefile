@@ -2,7 +2,7 @@
 
 UNAME := $(shell uname -s)
 
-VFLAGS = -Wall -trace -cc --exe -I../verilog -I../verilog/uart --Mdir $@
+VFLAGS = -CFLAGS -std=c++11 -Wall -trace -cc --exe -I../verilog -I../verilog/uart --Mdir $@
 GTKWAVE := gtkwave
 ifeq ($(UNAME),Darwin)
 VFLAGS += --compiler clang

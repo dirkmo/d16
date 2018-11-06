@@ -81,19 +81,49 @@ bool UDSServer::receive( std::vector<uint8_t>& data ) {
     return ret;
 }
 
+
+vector<uint8_t> vInputData;
+bool threadRunning = true;
+mutex mutexInput;
+
+void read_input_thread() {
+    while(threadRunning) {
+        uint8_t buf[4];
+        ssize_t size = read( fileno(stdin), buf, sizeof(buf) );
+
+        for( int i = 0; i < size; i++ ) cout << buf[i];
+        cout << flush;
+
+        mutexInput.lock();
+        for( int i = 0; i < size; i++ ) {
+            vInputData.push_back(buf[i]);
+        }
+        mutexInput.unlock();
+    }
+}
+
 int main() {
     cout << "d16sim console" << endl;
     UDSServer uds("/tmp/d16sim.uds");
     uds.start();
-    vector<uint8_t> data;
+    auto inputthread = thread( read_input_thread );
     while(1) {
         usleep( 1000 );
-        if( uds.receive( data ) ) {
+
+        vector<uint8_t> data;
+        if( uds.receive(data) ) {
             for( auto d: data ) {
                 cout << d;
             }
             cout << flush;
         }
+
+        mutexInput.lock();
+        if( vInputData.size() ) {
+            uds.send(vInputData);
+        }
+        mutexInput.unlock();
     }
     return 0;
 }
+
