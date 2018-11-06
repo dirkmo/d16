@@ -19,7 +19,7 @@ d16sim: client.o
 	cd d16sim/ && make -j4 -f Vtop.mk
 
 server: server.cpp server.h
-	g++ -std=c++11 -Wall server.cpp -lpthread -o server
+	g++ -std=c++11 -Wall -g3 server.cpp -lpthread -o server
 
 sim: d16sim server
 	d16sim/Vtop

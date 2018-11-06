@@ -27,6 +27,10 @@ public:
         start_tx = true;
     }
 
+    bool isSending() const {
+        return start_tx;
+    }
+
     void task() {
         send();
         receive();
@@ -47,7 +51,7 @@ private:
                 case 0: // idle
                     tx = 1;
                     if( start_tx ) {
-                        start_tx = false;
+                        //start_tx = false;
                         baudcount = 0;
                         state = 1;
                     }
@@ -68,6 +72,7 @@ private:
                     tx = 1;
                     if( baudcount == UART_TICK-1) {
                         state = 0;
+                        start_tx = false;
                     }
                     break;
                 default: state = 0;

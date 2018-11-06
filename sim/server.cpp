@@ -5,25 +5,13 @@
 #include <cstring>
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <termios.h>
 
 #include "server.h"
 
 using namespace std;
-
-struct termios old_attr;
-void makeraw() {
-    struct termios term_attr;
-    tcgetattr(STDIN_FILENO, &old_attr);
-    cfmakeraw(&term_attr);
-    tcsetattr(STDIN_FILENO, TCSANOW, &term_attr);
-}
-
-void restoreTerm() {
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
-}
-
 
 
 UDSServer::UDSServer( std::string fn ) : m_thread() {
@@ -96,14 +84,6 @@ bool UDSServer::receive( std::vector<uint8_t>& data ) {
     return ret;
 }
 
-int kbhit()
-{
-    struct timeval tv = {0L, 0L};
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(0, &fds);
-    return select(1, &fds, NULL, NULL, &tv);
-}
 
 vector<uint8_t> vInputData;
 bool threadRunning = true;
@@ -111,31 +91,24 @@ mutex mutexInput;
 
 void read_input_thread() {
     while(threadRunning) {
-        if( kbhit() ) {
-            uint8_t c;
-            //read( 0, &c, 1 );
-            c = getchar();
-            if( c == 3 ) {
-                threadRunning = false;
-                restoreTerm();
-                exit(0);
-            }
-            mutexInput.lock();
-            vInputData.push_back(c);
-            mutexInput.unlock();
-            cout << c << " " << int(c) <<  flush;
+        string recdata;
+        threadRunning = getline( cin, recdata ).rdstate() == ifstream::goodbit;
+        mutexInput.lock();
+        for( auto d : recdata ) {
+            vInputData.push_back(d);
         }
+        mutexInput.unlock();
     }
+    cout << "Thread ende" << endl;
 }
 
 
 int main() {
     cout << "d16sim console" << endl;
-    makeraw();
     UDSServer uds("/tmp/d16sim.uds");
     uds.start();
     auto inputthread = thread( read_input_thread );
-    while(1) {
+    while( threadRunning ) {
         usleep( 1000 );
 
         vector<uint8_t> data;
@@ -155,4 +128,3 @@ int main() {
     }
     return 0;
 }
-
