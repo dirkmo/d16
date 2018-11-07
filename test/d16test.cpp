@@ -393,7 +393,6 @@ void setupTests(Test& tester) {
             .prog = { 0, 6, PICK, HALT }
         }
     );
-
     // 37 PICK
     tester.addTest( (TestData) {
             .cpu =  { .pc = 3, .D = { 0, 6, 0 }, .R = { } },
