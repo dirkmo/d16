@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
+#include <vector>
 #include "../include/protothreads.h"
 #include "client.h"
 
@@ -15,16 +16,18 @@ public:
         UART_TICK = (SYS_CLK / BAUDRATE)+1,
     };
 
-    Uart( uint8_t *_tx, const uint8_t *_rx, const uint8_t *_clk) : tx(*_tx), rx(*_rx), clk(*_clk),
-    uds("/tmp/d16sim.uds") {
+    Uart( uint8_t *_tx, const uint8_t *_rx, const uint8_t *_clk)
+    : tx(*_tx), rx(*_rx), clk(*_clk), uds("/tmp/d16sim.uds")
+    {
         PT_INIT(&tx_pt, NULL);
         PT_INIT(&rx_pt, NULL);
         tx = 1;
     }
 
     void sendbyte(uint8_t dat) {
-        dat_tx = dat;
-        start_tx = true;
+        //dat_tx = dat;
+        //start_tx = true;
+        vDataToSend.push_back(dat);
     }
 
     bool isSending() const {
@@ -32,6 +35,7 @@ public:
     }
 
     void task() {
+        uds.receive(vDataToSend);
         send();
         receive();
     }
@@ -50,8 +54,10 @@ private:
             switch(state) {
                 case 0: // idle
                     tx = 1;
-                    if( start_tx ) {
+                    if( vDataToSend.size() > 0 ) {
                         //start_tx = false;
+                        dat_tx = vDataToSend.front();
+                        vDataToSend.erase(vDataToSend.begin());
                         baudcount = 0;
                         state = 1;
                     }
@@ -72,7 +78,6 @@ private:
                     tx = 1;
                     if( baudcount == UART_TICK-1) {
                         state = 0;
-                        start_tx = false;
                     }
                     break;
                 default: state = 0;
@@ -134,10 +139,11 @@ private:
 
     uint8_t dat_rx; // receive reg
     uint8_t dat_tx; // send reg
-    bool start_tx = false;
 
     struct pt tx_pt;
     struct pt rx_pt;
+
+    std::vector<uint8_t> vDataToSend;
 
     UDSClient uds;
 };

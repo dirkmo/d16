@@ -55,7 +55,12 @@ int main(int argc, char **argv, char **env) {
     tb->tick();
     int icount = 0;
 
-    while(icount++ < 3500) {
+    tb->uart.sendbyte('D');
+    tb->uart.sendbyte('1');
+    tb->uart.sendbyte('6');
+    tb->uart.sendbyte('!');
+
+    while(icount++ < 150000) {
 
         uint16_t pc = tb->m_core->top__DOT__cpu__DOT__pc;
 
@@ -69,15 +74,6 @@ int main(int argc, char **argv, char **env) {
         }
 
         tb->tick();
-
-        if( tb->m_tickcount == 100 ) {
-            tb->uart.sendbyte('A');
-        }
-
-        if( tb->m_tickcount == 270 ) {
-            tb->uart.sendbyte('B');
-        }
-
     }
 
     return 0;

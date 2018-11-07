@@ -41,7 +41,6 @@ bool UDSClient::receive( vector<uint8_t>& data ) {
     assert( m_socket_fd > -1 );
     uint8_t dat;
     ssize_t size;
-    data.clear();
     while( (size = recv( m_socket_fd, &dat, 1, MSG_DONTWAIT ) ) > 0 ) {
         data.push_back(dat);
     }

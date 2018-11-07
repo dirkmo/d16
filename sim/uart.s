@@ -7,14 +7,14 @@
 .org 0
 
 ; print msg
-msg print call
+msg printstr call
 
 ; receive string
-buf receive call
+buf receivestr call
 
 .dw 0xFFFF ; sim end
 
-print:  dup load ; msg cc
+printstr:  dup load ; msg cc
         dup done jmpz ; msg cc
         uart_ready_to_send call
         dup uart_tx store ; msg cc
@@ -23,7 +23,7 @@ print:  dup load ; msg cc
         uart_ready_to_send call
         uart_tx store ; msg
         1 add ; msg+1
-        print jmp
+        printstr jmp
 done:   ret
 
 uart_ready_to_send:
@@ -32,13 +32,13 @@ uart_ready_to_send:
         uart_ready_to_send jmpnz
         ret
 
-receive: ; TOS: buf address
+receivestr: ; TOS: buf address
         bufidx store ; save buf address to bufidx
         receivebyte call ; receive byte
         dup 13 sub recdone jmpz ; if byte == 13 then goto recdone
         bufidx load store
         bufidx load 1 add
-        jmp receive
+        jmp receivestr
 recdone:
         0 bufidx load 1 add store
         ret
