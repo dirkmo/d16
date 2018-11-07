@@ -52,14 +52,15 @@ reg [1:0] cpu_state;
 
 
 // instruction bit decoding
-wire       itype  = ir[15];
-wire [14:0]  imm  = ir[14:0];
+wire       itype     = ir[15];
+wire [14:0]  imm     = ir[14:0];
 
-wire  [1:0] dsp   = ir[14:13];
-wire        rsp   = ir[12];
-wire  [3:0] src   = ir[11:8];
-wire  [3:0] dst   = ir[7:4];
-wire  [3:0] aluop = ir[3:0];
+wire  [1:0] dsp      = ir[14:13];
+wire        rsp      = ir[12];
+wire  [3:0] src      = ir[11:8];
+wire  [3:0] dst      = ir[7:4];
+wire  [3:0] aluop    = ir[3:0];
+wire  [3:0] pick_idx = ir[3:0];
 
 reg [15:0] alu;
 reg alu_carry;
@@ -79,16 +80,17 @@ assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
 
 // bus source selection
 assign bus[15:0] =
-        src == 4'd0 ? R[rs_TOSidx] :
-        src == 4'd1 ? T :
-        src == 4'd2 ? pc1 :
-        src == 4'd3 ? { 9'd0, ds }:
-        src == 4'd4 ? i_wb_dat :
-        src == 4'd5 ? alu :
-        src == 4'd6 ? N == 16'd0 ? T : pc1 : // JMPZ
-        src == 4'd7 ? N[15] ? T : pc1 : // JMPL
-        src == 4'd8 ? N :
-        src == 4'd9 ? N == 16'd0 ? pc1 : T : // JMPNZ
+        src == 4'd0  ? R[rs_TOSidx] :
+        src == 4'd1  ? T :
+        src == 4'd2  ? pc1 :
+        src == 4'd3  ? { 9'd0, ds }:
+        src == 4'd4  ? i_wb_dat :
+        src == 4'd5  ? alu :
+        src == 4'd6  ? N == 16'd0 ? T : pc1 : // JMPZ
+        src == 4'd7  ? N[15] ? T : pc1 : // JMPL
+        src == 4'd8  ? N :
+        src == 4'd9  ? N == 16'd0 ? pc1 : T : // JMPNZ
+        src == 4'd10 ? D[pick_idx] : // PICK
                       16'd0;
 
 // cond: used in dst block for conditional branches.

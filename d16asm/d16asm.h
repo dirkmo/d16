@@ -276,7 +276,7 @@ void addOrg( uint16_t addr );
 void addDs( uint16_t size );
 void addEqu( string name, uint16_t val );
 void addDw();
-
+void addPick(uint8_t idx);
 
 #endif
 

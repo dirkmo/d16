@@ -22,6 +22,7 @@ enum CONSTANTS {
     SRC_JN      = 7 << 8, // conditional jump if less than zero
     SRC_DNOS    = 8 << 8,
     SRC_JNZ     = 9 << 8, // conditional jump if not zero
+    SRC_PICK    = 10 << 8,
 
     // dst: destination register
     DST_RS      = 0 << 4, // push return stack element
@@ -54,10 +55,13 @@ enum CONSTANTS {
 
 [15] | [14-13] | [12] | [11-8] | [7-4] | [3-0]
  1   |   dsp   |  rsp |  src   | dst   |  alu
+
+ 1   |   dsp   |  rsp | #PICK  | dst   | ds_idx
  */
 
 enum OPCODES {
     DUP    = OP | DSP_INC  | SRC_DTOS | DST_DS, // (n -- n n)
+    PICK   = OP | DSP_INC  | SRC_PICK | DST_DS, // ( n -- n n )
     SWAP   = OP | DST_T_N,
     DROP   = OP | DSP_DEC  | SRC_DTOS | DST_DS1, // (n -- )
  

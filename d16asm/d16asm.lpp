@@ -12,6 +12,7 @@
 \.ds                { return TOK_DS; }
 
 dup                 { return TOK_DUP; }
+pick                { return TOK_PICK; }
 swap                { return TOP_SWAP; }
 drop                { return TOK_DROP; }
 jmpz                { return TOK_JMPZ; }

@@ -21,6 +21,7 @@ list<dwPayload> listPayload;
 %token TOK_BRAZ TOK_BRANZ TOK_BRAL TOK_CALL TOK_RET TOK_PUSHRS TOK_DROPRS
 %token TOK_POPRS TOK_LOAD TOK_STORE TOK_PUSHPC TOK_PUSHSP TOK_POPSP TOK_ADD
 %token TOK_ADC TOK_SUB TOK_SBC TOK_AND TOK_OR TOK_XOR TOK_INV TOK_LSL TOK_LSR
+%token TOK_PICK
 
 %start S
 
@@ -70,8 +71,11 @@ keyword: TOK_DUP     { addKeyword(d16::OPCODES::DUP); }
        | TOK_INV     { addKeyword(d16::OPCODES::INV); }
        | TOK_LSL     { addKeyword(d16::OPCODES::LSL); }
        | TOK_LSR     { addKeyword(d16::OPCODES::LSR); }
+       | pick
        ;
 
+pick: TOK_PICK '(' TOK_NUMBER ')' { addPick( $3 ); }
+    ;
 
 directive: TOK_ORG TOK_NUMBER TOK_EOL { addOrg( $2 ); }
          | TOK_DS TOK_NUMBER TOK_EOL  { addDs($2); }
