@@ -60,7 +60,7 @@ wire        rsp      = ir[12];
 wire  [3:0] src      = ir[11:8];
 wire  [3:0] dst      = ir[7:4];
 wire  [3:0] aluop    = ir[3:0];
-wire  [3:0] pick_idx = ir[3:0];
+wire  [3:0] pick_idx = ds_TOSidx - ir[3:0];
 
 reg [15:0] alu;
 reg alu_carry;

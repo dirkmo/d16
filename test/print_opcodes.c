@@ -4,6 +4,7 @@
 
 uint16_t opcodes[] = {
     DUP,
+    PICK,
     SWAP,
     DROP,
     JMPZ,
@@ -36,6 +37,7 @@ uint16_t opcodes[] = {
 
 const char* names[] = {
     "DUP",
+    "PICK",
     "SWAP",
     "DROP",
     "JMPZ",

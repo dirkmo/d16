@@ -387,6 +387,19 @@ void setupTests(Test& tester) {
             .prog = { 0, 6, JMPNZ, HALT, 0x1234, HALT }
         }
     );
+    // 36 PICK
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0, 6, 6 }, .R = { } },
+            .prog = { 0, 6, PICK, HALT }
+        }
+    );
+
+    // 37 PICK
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 3, .D = { 0, 6, 0 }, .R = { } },
+            .prog = { 0, 6, PICK|1, HALT }
+        }
+    );
 }
 
 
