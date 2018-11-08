@@ -34,7 +34,7 @@ UDSClient::~UDSClient() {
 
 bool UDSClient::send( vector<uint8_t> data ) {
     assert( m_socket_fd > -1 );
-    return ::send(m_socket_fd, data.data(), data.size(), 0) == data.size();
+    return ::send(m_socket_fd, data.data(), data.size(), 0) == static_cast<ssize_t>(data.size());
 }
 
 bool UDSClient::receive( vector<uint8_t>& data ) {

@@ -31,7 +31,7 @@ public:
     }
 
     bool isSending() const {
-        return start_tx;
+        return vDataToSend.size() > 0;
     }
 
     void task() {
