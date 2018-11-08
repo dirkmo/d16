@@ -1,56 +1,39 @@
-#include "Vtop.h"
-#include "verilated.h"
-#include "testbench.h"
-#include "../include/d16.h"
-#include "uart.h"
-#include <vector>
-#include <stdint.h>
-#include <stdio.h>
-#include <assert.h>
+#include "sim.h"
+#include "debug.h"
 
 using namespace std;
 
+struct {
+    bool trace = false;
+    bool debug = false;
+} options;
 
-class sim : public TESTBENCH<Vtop> {
-public:
-    sim() : uart(&m_core->uart_rx, &m_core->uart_tx, &m_core->i_clk) {
+
+void parseCommandLine(int argc, char **argv) {
+    // -d debug mode
+    // -t enable trace
+    for( int i = 1; i < argc; i++ ) {
+        string s = argv[i];
+        if ( s == "-t" ) {
+            options.trace = true;
+        } else if( s == "-d" ) {
+            options.debug = true;
+        }
     }
+}
 
-	virtual void tick() override {
-		m_tickcount++;
-
-		m_core->i_clk = 0;
-		m_core->eval();
-
-        uart.task();
-		
-		if(m_trace) m_trace->dump(static_cast<vluint64_t>(10*m_tickcount-2));
-
-		m_core->i_clk = 1;
-		m_core->eval();
-        uart.task();
-		if(m_trace) m_trace->dump(static_cast<vluint64_t>(10*m_tickcount));
-
-		m_core->i_clk = 0;
-		m_core->eval();
-        uart.task();
-		if (m_trace) {
-			m_trace->dump(static_cast<vluint64_t>(10*m_tickcount+5));
-			m_trace->flush();
-		}
-	}
-    Uart uart;
-};
 
 int main(int argc, char **argv, char **env) {
     Verilated::commandArgs(argc, argv);
 
+    parseCommandLine(argc, argv);
+    
     sim *tb = new sim();
-
-
     tb->reset();
-
-    tb->opentrace("trace.vcd");
+    
+    if( options.trace ) {
+        tb->opentrace("trace.vcd");
+    }
 
     tb->tick();
     int icount = 0;
@@ -60,21 +43,22 @@ int main(int argc, char **argv, char **env) {
     tb->uart.sendbyte('6');
     tb->uart.sendbyte('!');
 
-    while(icount++ < 150000) {
-
-        uint16_t pc = tb->m_core->top__DOT__cpu__DOT__pc;
-
+    while(icount++ < 150) {
+        if( options.debug ) {
+            debugPrompt(tb);
+        }
         if( tb->m_core->top__DOT__cpu__DOT__ir == 0xFFFF ) {
             printf("Simulation done.\n");
             break;
         }
 
         if (tb->m_core->top__DOT__cpu__DOT__cpu_state == 1) {
-            //printf("(%d) pc: %04X\n", icount, pc);
+            cout << std::dec << tickcount() << ": 0x" << std::hex << tb->getPC();
+            cout << " -- DS: " << tb->getDS() << endl;
         }
 
         tb->tick();
     }
-
+    delete tb;
     return 0;
 }

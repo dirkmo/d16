@@ -38,8 +38,10 @@ sendbyte: ; ( n -- )
         uart_stat load 4 and
         sendbyte jmpnz
         uart_tx store
-
+        ret
 
 first: buf
 last: buf
 buf: .ds 32
+
+.dw 0xFFFF
