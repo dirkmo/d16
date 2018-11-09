@@ -47,13 +47,13 @@ int main(int argc, char **argv, char **env) {
         if( options.debug ) {
             debugPrompt(tb);
         }
-        if( tb->m_core->top__DOT__cpu__DOT__ir == 0xFFFF ) {
+        if( tb->m_core->v__DOT__cpu__DOT__ir == 0xFFFF ) {
             printf("Simulation done.\n");
             break;
         }
 
-        if (tb->m_core->top__DOT__cpu__DOT__cpu_state == 1) {
-            cout << std::dec << tickcount() << ": 0x" << std::hex << tb->getPC();
+        if (tb->m_core->v__DOT__cpu__DOT__cpu_state == 1) {
+            cout << std::dec << tb->getTickCounter() << ": 0x" << std::hex << tb->getPC();
             cout << " -- DS: " << tb->getDS() << endl;
         }
 

@@ -4,7 +4,7 @@
 #include <vector>
 
 using namespace std;
-
+/*
 uint64_t* tickcounter = NULL;
 
 uint64_t tickcount() {
@@ -13,6 +13,7 @@ uint64_t tickcount() {
     }
 	return 0;
 }
+*/
 
 template<class MODULE>	class TESTBENCH {
 public:
@@ -25,7 +26,7 @@ public:
 		m_core = new MODULE;
 		m_trace = NULL;
 		m_tickcount = 0l;
-		tickcounter = &m_tickcount;
+		//tickcounter = &m_tickcount;
 	}
 
 	virtual ~TESTBENCH() {
@@ -78,5 +79,9 @@ public:
 
 	virtual bool done() {
         return Verilated::gotFinish();
+    }
+
+    virtual uint64_t getTickCounter() {
+        return m_tickcount;
     }
 };

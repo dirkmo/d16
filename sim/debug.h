@@ -4,6 +4,5 @@
 class sim;
 
 void debugPrompt( sim *tb );
-void printCommands();
 
 #endif
