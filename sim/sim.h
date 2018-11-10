@@ -1,8 +1,10 @@
 #ifndef __SIM_H
 #define __SIM_H
 
+#include <algorithm>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <cstdint>
 #include <cstdio>
 #include <cassert>
@@ -51,9 +53,9 @@ public:
 		}
 	}
 
-    uint16_t getPC() { return m_core->top__DOT__cpu__DOT__pc; }
+    uint16_t getPC() const { return m_core->top__DOT__cpu__DOT__pc; }
 
-    uint16_t getMem(uint16_t addr) {
+    uint16_t getMem(uint16_t addr) const {
         return m_core->top__DOT__blkmem0__DOT__mem[addr];
     }
 
@@ -61,9 +63,9 @@ public:
         m_core->top__DOT__blkmem0__DOT__mem[addr] = dat;
     }
 
-    uint16_t getIR() { return m_core->top__DOT__cpu__DOT__ir; }
+    uint16_t getIR() const { return m_core->top__DOT__cpu__DOT__ir; }
 
-    vector<uint16_t> getDS() {
+    vector<uint16_t> getDS() const {
         vector<uint16_t> v;
         for( int i = 0; i < m_core->top__DOT__cpu__DOT__ds; i++ ) {
             v.push_back(m_core->top__DOT__cpu__DOT__D[i]);
@@ -71,7 +73,7 @@ public:
         return v;
     }
 
-    vector<uint16_t> getRS() {
+    vector<uint16_t> getRS() const {
         vector<uint16_t> v;
         for( int i = 0; i < m_core->top__DOT__cpu__DOT__rs; i++ ) {
             v.push_back(m_core->top__DOT__cpu__DOT__R[i]);
@@ -79,7 +81,21 @@ public:
         return v;
     }
 
+    bool onBreakpoint() const {
+        return breakpoints.find(getPC()) != breakpoints.end();
+    }
+
+    bool toggleBreakpoint(uint16_t addr) {
+        if( breakpoints.find(addr) == breakpoints.end() ) {
+            breakpoints.insert(addr);
+            return true;
+        }
+        breakpoints.erase(addr);
+        return false;
+    }
+
     Uart uart;
+    set<uint16_t> breakpoints;
 };
 
 #endif

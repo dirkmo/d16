@@ -58,7 +58,7 @@ int main(int argc, char **argv, char **env) {
     tb->uart.sendbyte('!');
 
     while(icount++ < 150) {
-        if( tb->options.debug ) {
+        if( tb->options.debug && !tb->options.run) {
             debugPrompt(tb);
         }
 
@@ -69,9 +69,15 @@ int main(int argc, char **argv, char **env) {
                 printf("Simulation done.\n");
                 break;
             }
+            
+            tb->tick();
+            tb->tick();
 
-            tb->tick();
-            tb->tick();
+            if( tb->onBreakpoint() ) {
+                tb->options.run = false;
+                tb->options.step = false;
+                cout << "Halted on breakpoint." << endl;
+            }
         }
     }
     delete tb;

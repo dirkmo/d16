@@ -103,6 +103,23 @@ void print_stack(sim* tb, const vector<uint16_t>& v) {
     cout << endl;
 }
 
+void toggleBreakpoint(sim* tb, vector<string>& vs) {
+    uint16_t addr = tb->getPC();
+    if( vs.size() > 1 ) {
+        try {
+            addr = stoi(vs[1], NULL, 0);
+        } catch(...) {
+            cout << "Invalid breakpoint address" << endl;
+            return;
+        }
+    }
+    if( tb->toggleBreakpoint(addr) ) {
+        cout << "Set breakpoint on " << hex << addr << endl;
+    } else {
+        cout << "Removed breakpoint on " << hex << addr << endl;
+    }
+}
+
 void debugPrompt( sim *tb ) {
     string s;
     cout << setfill('0') << setw(4) << tb->getPC()
@@ -122,6 +139,7 @@ void debugPrompt( sim *tb ) {
         disassemble(tb, vs);
     } else if( vs[0] == "b" ) {
         // breakpoint
+        toggleBreakpoint(tb, vs);
     } else if( vs[0] == "r" ) {
         tb->options.run = true;
     } else if( vs[0] == "s" ) {
