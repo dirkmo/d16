@@ -4,7 +4,7 @@ UNAME := $(shell uname -s)
 
 VERILATOR_OUTPUTDIR = verilator
 
-INCDIR=-I$(VERILATOR_OUTPUTDIR) -I../verilog -I../verilog/uart -I/usr/share/verilator/include 
+INCDIR=-I$(VERILATOR_OUTPUTDIR) -I../verilog -I../verilog/uart -I/usr/share/verilator/include -I../include
 
 VFLAGS = -CFLAGS -std=c++11 -Wall -trace -cc --exe $(INCDIR) --Mdir $(VERILATOR_OUTPUTDIR)
 GTKWAVE := gtkwave
@@ -15,7 +15,7 @@ endif
 
 CFLAGS=-Wall -std=c++11
 
-CPPFILES=client.cpp debug.cpp
+CPPFILES=client.cpp debug.cpp opcodes.cpp
 OBJFILES=$(CPPFILES:.cpp=.o)
 
 all: server d16sim
@@ -24,7 +24,7 @@ all: server d16sim
 	g++ $(CFLAGS) $(INCDIR) -c $< -o $@
 
 verilator: sim.cpp
-	verilator $(VFLAGS) top.v ../client.o ../debug.o sim.cpp
+	verilator $(VFLAGS) top.v ../client.o ../debug.o ../opcodes.o sim.cpp
 
 
 d16sim: verilator $(OBJFILES)

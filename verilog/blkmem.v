@@ -12,6 +12,8 @@ module blkmem(
     i_cyc
 );
 
+//`define ROM
+
 `define DEPTH 16
 
 input i_clk;
@@ -28,11 +30,12 @@ reg [15:0] mem[2**`DEPTH-1:0];
 always @(i_addr)
 begin
     case(i_addr)
+`ifdef ROM
 `include "romdata.inc"
+`endif
         default: o_dat = mem[i_addr];
     endcase
 end
-
 
 // write access
 always @(posedge i_clk)

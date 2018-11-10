@@ -4,16 +4,6 @@
 #include <vector>
 
 using namespace std;
-/*
-uint64_t* tickcounter = NULL;
-
-uint64_t tickcount() {
-    if( tickcounter ) {
-        return *tickcounter*10;
-    }
-	return 0;
-}
-*/
 
 template<class MODULE>	class TESTBENCH {
 public:
@@ -23,7 +13,7 @@ public:
 
 	TESTBENCH(void) {
 		Verilated::traceEverOn(true);
-		m_core = new MODULE;
+		m_core = new MODULE();
 		m_trace = NULL;
 		m_tickcount = 0l;
 		//tickcounter = &m_tickcount;

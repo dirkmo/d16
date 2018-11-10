@@ -2,13 +2,16 @@
 #include <algorithm> 
 #include <cctype>
 #include <locale>
+#include <iomanip>
 #include "sim.h"
+#include "opcodes.h"
 
 using namespace std;
 
 static void printCommands() {
     cout << "Commands:" << endl;
-    cout << "  d <addr> [len]  dump memory" << endl;
+    cout << "  d [addr] [len]  dump memory" << endl;
+    cout << "  D [addr] [len]  disassemble memory" << endl;
     cout << "  b <addr>        enable breakpoint at address" << endl;
     cout << "  r               run" << endl;
     cout << "  s               step" << endl;
@@ -42,19 +45,68 @@ static void tokenize( const string& _s, vector<string>& vs ) {
     }
 }
 
-static void dumpMemory( sim *tb, uint16_t addr, uint16_t len ) {
+static void dumpMemory( sim *tb, vector<string>& vs ) {
     uint16_t i;
+
+    int len = 4;
+    int addr = tb->getPC();
+    if( vs.size() > 1 ) {
+        try {
+            addr = stoi(vs[1], NULL, 0);
+            if( vs.size() > 2 ) {
+                len = stoi(vs[2], NULL, 0);
+            }
+        } catch(...) {
+            cout << "Invalid arguments" << endl;
+            return;
+        }
+    }
     for( i = 0; i < len; i++ ) {
         if( i % 16 == 0 ) {
-            cout << endl << "0x" << hex << addr+i << ": ";
+            cout << endl << hex << setfill('0') << setw(4) << addr+i << ": ";
         }
-        cout << tb->m_core->top__DOT__blkmem0__DOT__mem[i] << " ";
+        cout << tb->getMem(addr + i) << " ";
     }
+    cout << endl;
+}
+
+static void disassemble( sim *tb, vector<string>& vs ) {
+    uint16_t i;
+
+    int len = 16;
+    int addr = tb->getPC();
+    if( vs.size() > 1 ) {
+        try {
+            addr = stoi(vs[1], NULL, 0);
+            if( vs.size() > 2 ) {
+                len = stoi(vs[2], NULL, 0);
+            }
+        } catch(...) {
+            cout << "Invalid arguments" << endl;
+            return;
+        }
+    }
+    for( i = 0; i < len; i++ ) {
+        if( i % 16 == 0 ) {
+            cout << endl << hex << setfill('0') << setw(4) << addr+i << ": ";
+        }
+        cout << mnemonic(tb->getMem(addr + i)) << " ";
+    }
+    cout << endl;
+}
+
+void print_stack(sim* tb, const vector<uint16_t>& v) {
+    cout << dec << "<" << v.size() << ">";
+    for( auto d: v ) {
+        cout << hex << " " << d;
+    }
+    cout << endl;
 }
 
 void debugPrompt( sim *tb ) {
     string s;
-    cout << "d16> ";
+    cout << setfill('0') << setw(4) << tb->getPC()
+        << " [" << mnemonic(tb->getMem(tb->getPC())) << "] > ";
     getline(cin, s);
     s = trim(s);
     vector<string> vs;
@@ -65,21 +117,23 @@ void debugPrompt( sim *tb ) {
     if( vs[0] == "help" ) {
         printCommands();
     } else if( vs[0] == "d" && vs.size() > 1 ) {
-        int len = 16;
-        int addr;
-        try {
-            addr = stoi(vs[1]);
-            if( vs.size() > 2 ) {
-                len = stoi(vs[2]);
-            }
-        } catch(...) {
-            cout << "Invalid arguments" << endl;
-            return;
-        }
-        dumpMemory( tb, addr, len );
+        dumpMemory(tb, vs);
+    } else if( vs[0] == "D" ) {
+        disassemble(tb, vs);
     } else if( vs[0] == "b" ) {
+        // breakpoint
     } else if( vs[0] == "r" ) {
+        tb->options.run = true;
     } else if( vs[0] == "s" ) {
+        // step
+        tb->options.step = true;
+    } else if( vs[0] == "ds" ) {
+        print_stack(tb, tb->getDS());
+    } else if( vs[0] == "rs" ) {
+        print_stack(tb, tb->getRS());
+    } else if( vs[0] == "verbose" ) {
+        tb->options.verbose = !tb->options.verbose;
+        cout << "verbose " << (tb->options.verbose ? "on" : "off") << endl;
     } else {
         cout << "Error" << endl;
     }

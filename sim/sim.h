@@ -16,6 +16,14 @@
 
 class sim : public TESTBENCH<Vtop> {
 public:
+    struct {
+        bool trace = false;
+        bool debug = false;
+        bool run = false;
+        bool step = false;
+        bool verbose = false;
+    } options;
+
     sim() : uart(&m_core->uart_rx, &m_core->uart_tx, &m_core->i_clk) {
     }
 
@@ -45,14 +53,30 @@ public:
 
     uint16_t getPC() { return m_core->top__DOT__cpu__DOT__pc; }
 
-    string getDS() {
-        stringstream ss;
+    uint16_t getMem(uint16_t addr) {
+        return m_core->top__DOT__blkmem0__DOT__mem[addr];
+    }
+
+    void setMem(uint16_t addr, uint16_t dat ) {
+        m_core->top__DOT__blkmem0__DOT__mem[addr] = dat;
+    }
+
+    uint16_t getIR() { return m_core->top__DOT__cpu__DOT__ir; }
+
+    vector<uint16_t> getDS() {
+        vector<uint16_t> v;
         for( int i = 0; i < m_core->top__DOT__cpu__DOT__ds; i++ ) {
-            uint8_t d = m_core->top__DOT__cpu__DOT__D[i];
-            ss << std::hex << (int)d << " ";
+            v.push_back(m_core->top__DOT__cpu__DOT__D[i]);
         }
-        ss << std::dec << "(" << (int)m_core->top__DOT__cpu__DOT__ds << ")";
-        return ss.str();
+        return v;
+    }
+
+    vector<uint16_t> getRS() {
+        vector<uint16_t> v;
+        for( int i = 0; i < m_core->top__DOT__cpu__DOT__rs; i++ ) {
+            v.push_back(m_core->top__DOT__cpu__DOT__R[i]);
+        }
+        return v;
     }
 
     Uart uart;
