@@ -43,15 +43,15 @@ public:
 		}
 	}
 
-    uint16_t getPC() { return m_core->v__DOT__cpu__DOT__pc; }
+    uint16_t getPC() { return m_core->top__DOT__cpu__DOT__pc; }
 
     string getDS() {
         stringstream ss;
-        for( int i = 0; i < m_core->v__DOT__cpu__DOT__ds; i++ ) {
-            uint8_t d = m_core->v__DOT__cpu__DOT__D[i];
+        for( int i = 0; i < m_core->top__DOT__cpu__DOT__ds; i++ ) {
+            uint8_t d = m_core->top__DOT__cpu__DOT__D[i];
             ss << std::hex << (int)d << " ";
         }
-        ss << std::dec << "(" << (int)m_core->v__DOT__cpu__DOT__ds << ")";
+        ss << std::dec << "(" << (int)m_core->top__DOT__cpu__DOT__ds << ")";
         return ss.str();
     }
 

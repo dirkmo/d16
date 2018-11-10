@@ -45,6 +45,7 @@ private:
         static int state = 0;
         static int baudcount = 0;
         PT_BEGIN(&tx_pt);
+        (void)PT_YIELD_FLAG;
         while(1) {
             PT_WAIT_UNTIL(&tx_pt, clk);
             // clk = 1
@@ -90,6 +91,7 @@ private:
         static int state = 0;
         static int baudcount = 0;
         PT_BEGIN(&rx_pt);
+        (void)PT_YIELD_FLAG;
         while(1) {
             PT_WAIT_UNTIL(&rx_pt, clk);
             // clk = 1
