@@ -15,6 +15,9 @@ static void printCommands() {
     cout << "  b <addr>        enable breakpoint at address" << endl;
     cout << "  r               run" << endl;
     cout << "  s               step" << endl;
+    cout << "  ds              print data stack" << endl;
+    cout << "  rs              print return stack " << endl;
+    cout << "  verbose         verbose mode" << endl;
 }
 
 static string trim(const string& _s) {
@@ -122,6 +125,9 @@ void toggleBreakpoint(sim* tb, vector<string>& vs) {
 
 void debugPrompt( sim *tb ) {
     string s;
+    if( tb->options.verbose) {
+        print_stack(tb, tb->getDS());
+    }
     cout << setfill('0') << setw(4) << tb->getPC()
         << " [" << mnemonic(tb->getMem(tb->getPC())) << "] > ";
     getline(cin, s);

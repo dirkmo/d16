@@ -65,7 +65,7 @@ int main(int argc, char **argv, char **env) {
         if( !tb->options.debug || tb->options.run || tb->options.step ) {
             tb->options.step = false;
 
-            if( tb->m_core->top__DOT__cpu__DOT__ir == 0xFFFF ) {
+            if( tb->getIR() == HALT ) {
                 printf("Simulation done.\n");
                 break;
             }
