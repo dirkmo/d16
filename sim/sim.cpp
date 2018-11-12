@@ -52,12 +52,12 @@ int main(int argc, char **argv, char **env) {
 
     int icount = 0;
 
-    string msg = "Hallo Welt!";
+    string msg = "Hallo Welt!\n";
     for( auto c : msg ) {
         tb->uart.sendbyte(c);
     }
 
-    while(icount++ < 3500) {
+    while(icount++ < 4500) {
         if( tb->options.debug && !tb->options.run) {
             debugPrompt(tb);
         }

@@ -11,7 +11,7 @@
 class Uart {
 public:
     enum CONSTANTS {
-        SYS_CLK   = 4000000,
+        SYS_CLK   = 2000000,
         BAUDRATE  = 115200,
         UART_TICK = (SYS_CLK / BAUDRATE)+1,
     };

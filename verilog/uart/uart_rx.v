@@ -48,10 +48,31 @@ always @(posedge i_clk) begin
 end
 
 //-------------------------------------------------
+// Fifo
+//
+
+wire [7:0] fifo_dat;
+reg fifo_push;
+wire fifo_pop = i_cyc && i_addr == 1'b0 && i_we == 1'b0;
+wire fifo_empty;
+wire fifo_full;
+
+fifo rxfifo(
+    .i_clk(i_clk),
+	.i_reset(i_reset),
+    .i_dat(rx_reg),
+    .o_dat(fifo_dat),
+    .i_push(fifo_push),
+    .i_pop(fifo_pop),
+	.o_empty(fifo_empty),
+	.o_full(fifo_full)
+);
+
+//-------------------------------------------------
 // Receiver
+//
 
 reg [7:0] rx_reg;
-reg data_avail;
 
 localparam
     IDLE = 10,
@@ -69,7 +90,7 @@ reg [7:0] rx_buf; // temp receive buffer
 
 always @(posedge i_clk) begin
     o_int <= 0;
-    data_avail <= 0;
+    fifo_push <= 0;
     case( state_rx )
         IDLE: // waiting for start bit
             if( rx == 1'b0 ) begin
@@ -86,7 +107,7 @@ always @(posedge i_clk) begin
         INTERRUPT:
             begin
                 o_int <= 1;
-                data_avail <= 1;
+                fifo_push <= 1;
                 rx_reg <= rx_buf;
                 state_rx <= IDLE;
             end
@@ -105,28 +126,26 @@ end
 // bit0: DA data available
 // bit1: OV overrun
 
-reg [1:0] r_status;
+reg r_overrun;
+wire [1:0] r_status = { r_overrun, ~fifo_empty };
 always @(posedge i_clk)
 begin
-    if( data_avail ) begin
-        // data received
-        // if already DA flag active --> overrun
-        r_status[1:0] <= { r_status[0], 1'b1 };
-    end
-    if( i_cyc && i_addr == 1'b0 && i_we == 1'b0 )
+    if( fifo_push && fifo_full ) begin
+        r_overrun <= 1'b1;
+    end else if( i_cyc && i_addr == 1'b0 && i_we == 1'b0 )
     begin
         // received data being read, clears overrun and data available flags
-        r_status[1:0] <= 2'd0;
+        r_overrun <= 1'd0;
     end
     if( i_reset ) begin
-        r_status <= 2'd0;
+        r_overrun <= 1'd0;
     end
 end
 
 //-------------------------------------------------
 // bus interface
 
-assign o_dat = i_addr ? { 6'd0, r_status } : rx_reg;
+assign o_dat = i_addr ? { 6'd0, r_status } : fifo_dat;
 
 
 endmodule
