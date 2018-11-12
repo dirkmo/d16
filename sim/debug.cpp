@@ -138,7 +138,7 @@ void debugPrompt( sim *tb ) {
     if( tb->options.verbose) {
         print_stack(tb, tb->getDS());
     }
-    cout << setfill('0') << setw(4) << tb->getPC()
+    cout << hex << setfill('0') << setw(4) << tb->getPC()
         << " [" << mnemonic(tb->getMem(tb->getPC())) << "] > ";
     getline(cin, s);
     s = trim(s);
