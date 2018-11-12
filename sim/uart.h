@@ -11,7 +11,7 @@
 class Uart {
 public:
     enum CONSTANTS {
-        SYS_CLK   = 1000000,
+        SYS_CLK   = 4000000,
         BAUDRATE  = 115200,
         UART_TICK = (SYS_CLK / BAUDRATE)+1,
     };
@@ -25,8 +25,6 @@ public:
     }
 
     void sendbyte(uint8_t dat) {
-        //dat_tx = dat;
-        //start_tx = true;
         vDataToSend.push_back(dat);
     }
 

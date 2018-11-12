@@ -11,7 +11,7 @@ loop:
         push branz
 
         pop call
-        jmpz loop1 ; if popresult == 0 goto loop1
+        loop1 jmpz ; if popresult == 0 goto loop1
 
         sendbyte call
         loop jmp
@@ -23,9 +23,10 @@ receivebyte: ; ( -- n )
         ; receive byte from uart. returns 0 if no byte avail
         ; get DA bit
         uart_stat load 1 and
-        dup x1 jmpz
+        x1 jmpz
         uart_rx load ; read byte from uart
-x1:     ret
+        1 ret
+x1:     0 ret
 
 sendbyte: ; ( n -- )
         ; get tx active bit
@@ -36,7 +37,7 @@ sendbyte: ; ( n -- )
 
 push:   ; ( n -- )
         ; push to fifo
-        last load store
+        last load buf add store
         ; last = (last+1) & 0x1F
         last load 1 add 0x1F and last store
         ret
@@ -45,18 +46,18 @@ pop:    ; ( -- dat success )
         ; first - last
         first load last load sub pop1 jmpnz
         ; no data avail
-        0 0 ; ret val: no data
+        0 0 ; return value: no data
         ret
 pop1:   ; data avail in fifo
-        first load load
+        first load buf add load
         ; first = (first + 1) & 0x1F
         first load 1 add 0x1F and first store
-        1 ; ret val: data popped
+        1 ; return value: data popped
         ret
 
 
-first: buf
-last: buf
+first: 0
+last: 0
 buf: .ds 32
 
 .dw 0xFFFF

@@ -23,7 +23,7 @@ public:
         bool debug = false;
         bool run = false;
         bool step = false;
-        bool verbose = false;
+        bool verbose = true;
     } options;
 
     sim() : uart(&m_core->uart_rx, &m_core->uart_tx, &m_core->i_clk) {
