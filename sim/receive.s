@@ -7,26 +7,20 @@
 loop:
         receivebyte call
         
-        dup send jmpz
-        ; add byte to fifo
-        last load store
-        
-        ; last = (last+1) & 0x1F
-        last load 1 add 0x1F and last store
-        
-        ; if first == last goto loop
-        first load last load sub loop jmpz
+        ; if rec!=0 push()
+        push branz
 
-send:   first load load ; get char from fifo
-        dup loop jmpz ; if char==zero goto loop
+        pop call
+        jmpz loop1 ; if popresult == 0 goto loop1
+
         sendbyte call
-        
-        ; first = (first + 1) & 0x1F
-        first load 1 add 0x1F and first store
+        loop jmp
 
+loop1:  drop ; drop 0 char
         loop jmp
 
 receivebyte: ; ( -- n )
+        ; receive byte from uart. returns 0 if no byte avail
         ; get DA bit
         uart_stat load 1 and
         dup x1 jmpz
@@ -39,6 +33,27 @@ sendbyte: ; ( n -- )
         sendbyte jmpnz
         uart_tx store
         ret
+
+push:   ; ( n -- )
+        ; push to fifo
+        last load store
+        ; last = (last+1) & 0x1F
+        last load 1 add 0x1F and last store
+        ret
+
+pop:    ; ( -- dat success )
+        ; first - last
+        first load last load sub pop1 jmpnz
+        ; no data avail
+        0 0 ; ret val: no data
+        ret
+pop1:   ; data avail in fifo
+        first load load
+        ; first = (first + 1) & 0x1F
+        first load 1 add 0x1F and first store
+        1 ; ret val: data popped
+        ret
+
 
 first: buf
 last: buf

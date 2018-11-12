@@ -65,10 +65,20 @@ static void dumpMemory( sim *tb, vector<string>& vs ) {
         }
     }
     for( i = 0; i < len; i++ ) {
-        if( i % 16 == 0 ) {
-            cout << endl << hex << setfill('0') << setw(4) << addr+i << ": ";
+        if( i % 8 == 0 ) {
+            if( i > 0 ) {
+                // for( int j=0; j < 8; j++ ) {
+                //     auto val = tb->getMem(addr + i + j);
+                //     char c = val >> 8;
+                //     if( isgraph(c) ) cout << c; else cout << ".";
+                //     c = val;
+                //     if( isgraph(c) ) cout << c; else cout << ".";
+                // }
+                cout << endl;
+            }
+            cout << hex << setfill('0') << setw(4) << addr+i << ": ";
         }
-        cout << tb->getMem(addr + i) << " ";
+        cout << hex << setfill('0') << setw(4) << tb->getMem(addr + i) << " ";
     }
     cout << endl;
 }

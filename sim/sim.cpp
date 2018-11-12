@@ -57,7 +57,7 @@ int main(int argc, char **argv, char **env) {
     tb->uart.sendbyte('6');
     tb->uart.sendbyte('!');
 
-    while(icount++ < 150) {
+    while(icount++ < 1500) {
         if( tb->options.debug && !tb->options.run) {
             debugPrompt(tb);
         }

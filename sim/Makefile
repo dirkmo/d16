@@ -34,7 +34,7 @@ server: server.cpp server.h
 	g++ -std=c++11 -Wall -g3 server.cpp -lpthread -o server
 
 sim: d16sim
-	$(VERILATOR_OUTPUTDIR)/Vtop -d
+	$(VERILATOR_OUTPUTDIR)/Vtop -d -t
 
 wave: sim
 	gtkwave trace.vcd &
