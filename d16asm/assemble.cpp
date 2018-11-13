@@ -157,7 +157,7 @@ static int countExtendedLabels() {
 }
 
 static void printReferences(ofstream& out) {
-    out << "Symbols:" << endl;
+    out << "=== Symbols:" << endl;
     for( auto r: mapReferences ) {
         out << r.first << ": 0x" << r.second->addr << endl;
     }
@@ -241,14 +241,14 @@ int assemble( list<CmdBase*>& _lst, string fn ) {
 
         out << endl;
 
-        out << "Program:" << endl;
+        out << "=== Program:" << endl;
         for( auto c: _lst ) {
             out << "0x" << c->addr << ": " << c->getString() << endl;
         }
 
         out << endl;
 
-        out << "Program (sorted by address):" << endl;
+        out << "=== Program (sorted by address):" << endl;
         for( auto c: cmdlist ) {
             out << "0x" << c->addr << ": " << c->getString() << endl;
         }

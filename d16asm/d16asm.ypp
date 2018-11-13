@@ -36,9 +36,13 @@ line: TOK_EOL
     | keyword
     | TOK_NUMBER     { addNumber($1); }
     | TOK_LABEL      { addLabel($1); }
-    | TOK_IDENTIFIER { addIdentifier($1, 0); }
+    | identifier
     | directive
     ;
+
+identifier: TOK_IDENTIFIER '(' TOK_NUMBER ')' { addIdentifier($1, $3); }
+          | TOK_IDENTIFIER { addIdentifier($1, 0); }
+          ;
 
 
 keyword: TOK_DUP     { addKeyword(d16::OPCODES::DUP); }

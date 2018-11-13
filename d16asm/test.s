@@ -21,8 +21,13 @@ dummy:  dup done jmpz ; msg 0c
         print jmp
 
 done:   ret
+        pick(0)
         pick(15)
         pick(1)
+        swap(0)
+        swap(1)
+        dummy(1)
+        dummy(-1)
 
 .ds 10
 

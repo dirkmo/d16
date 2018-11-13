@@ -1,13 +1,15 @@
 #ifndef __D16ASM_H
 #define __D16ASM_H
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdint>
 #include <map>
 #include <vector>
 #include <string>
 #include <list>
+#include <sstream>
+#include <iomanip>
 #include <assert.h>
 #include "opcodes.h"
 
@@ -177,7 +179,18 @@ public:
     }
     
     virtual string getString() override {
-        return name;
+        stringstream s;
+        s << name;
+        if( offset != 0 ) {
+            s << '(' << hex;
+            if (offset < 0) {
+                s << '-' << -offset;
+            } else {
+                s << offset;
+            }
+            s << ')';
+        }
+        return s.str();
     }
 
     void setReference(CmdReference *_ref) {
@@ -189,25 +202,16 @@ public:
     }
 
     bool isExtended() {
-        if( ref ) {
-            if( ref->type == CmdBase::Equ || ref->type == CmdBase::Label ) {
-                CmdReference* r = static_cast<CmdReference*>(ref);
-                return r->isExtended();
-            } else {
-                assert(0);
-            }
-        }
-        // no reference known, assuming not extended
-        return false;
+        return ref ? (getValue() > 0x7FFF) : false;
     }
 
     virtual uint16_t getValue() override {
         assert( ref );
-        return ref->getValue();
+        return ref->getValue() + offset;
     }
 
     void getExtendedValue( uint16_t& val, uint16_t& inv ) {
-        val = ~ref->getValue();
+        val = ~getValue();
         inv = d16::INV;
     }
 
@@ -226,7 +230,14 @@ public:
     }
 
     string getMnemonic() {
-        return d16::mapOpcodes[static_cast<d16::OPCODES>(value)];
+        string s;
+        d16::OPCODES opcode = static_cast<d16::OPCODES>(value);
+        if( d16::mapOpcodes.find(opcode) == d16::mapOpcodes.end() ) {
+            uint8_t idx = value & 0xF;
+            opcode = static_cast<d16::OPCODES>(value & 0xFFF0);
+            s = '(' + to_string(idx) + ')';
+        }
+        return d16::mapOpcodes[opcode] + s;
     }
 
     virtual string getString() override {
