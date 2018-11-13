@@ -62,4 +62,3 @@ first: 0
 last: 0
 buf: .ds 32
 
-.dw 0xFFFF
