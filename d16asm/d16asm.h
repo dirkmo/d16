@@ -170,7 +170,7 @@ public:
 
 class CmdIdentifier : public CmdBase {
 public:
-    CmdIdentifier( string _name ) : ref(NULL) {
+    CmdIdentifier( string _name, int16_t _offset ) : ref(NULL), offset(_offset) {
         lineno = yylineno;
         type = CmdBase::Ident;
         name = _name;
@@ -212,6 +212,7 @@ public:
     }
 
     CmdReference *ref;
+    int16_t offset;
 };
 
 class CmdKeyword : public CmdBase {
@@ -268,7 +269,7 @@ public:
     list<dwPayload> payload;
 };
 
-void addIdentifier(string name);
+void addIdentifier(string name, int16_t offset);
 void addNumber(uint16_t val);
 void addLabel(string name);
 void addKeyword(d16::OPCODES opcode);

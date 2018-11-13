@@ -4,8 +4,8 @@
 
 list<CmdBase*> cmdlist;
 
-void addIdentifier(string name) {
-    CmdIdentifier *ident = new CmdIdentifier(name);
+void addIdentifier(string name, int16_t offset) {
+    CmdIdentifier *ident = new CmdIdentifier(name, offset);
     cmdlist.push_back(ident);
 }
 

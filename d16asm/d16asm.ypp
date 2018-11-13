@@ -36,7 +36,7 @@ line: TOK_EOL
     | keyword
     | TOK_NUMBER     { addNumber($1); }
     | TOK_LABEL      { addLabel($1); }
-    | TOK_IDENTIFIER { addIdentifier($1); }
+    | TOK_IDENTIFIER { addIdentifier($1, 0); }
     | directive
     ;
 
