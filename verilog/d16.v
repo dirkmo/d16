@@ -161,8 +161,8 @@ begin
                     pc <= bus;
                 end
                 4'd10: begin
-                    D[ds_TOSidx] <= D[ds_NOSidx];
-                    D[ds_NOSidx] <= D[ds_TOSidx];
+                    D[ds_TOSidx] <= D[pick_idx];
+                    D[pick_idx] <= D[ds_TOSidx];
                 end
                 default: ;
             endcase

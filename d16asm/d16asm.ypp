@@ -17,7 +17,7 @@ list<dwPayload> listPayload;
 %token TOK_ORG TOK_EQU TOK_DW TOK_DS
 /* keywords */
 
-%token TOK_DUP TOP_SWAP TOK_DROP TOK_JMPZ TOK_JMPNZ TOK_JMPL TOK_JMP
+%token TOK_DUP TOK_SWAP TOK_DROP TOK_JMPZ TOK_JMPNZ TOK_JMPL TOK_JMP
 %token TOK_BRAZ TOK_BRANZ TOK_BRAL TOK_CALL TOK_RET TOK_PUSHRS TOK_DROPRS
 %token TOK_POPRS TOK_LOAD TOK_STORE TOK_PUSHPC TOK_PUSHSP TOK_POPSP TOK_ADD
 %token TOK_ADC TOK_SUB TOK_SBC TOK_AND TOK_OR TOK_XOR TOK_INV TOK_LSL TOK_LSR
@@ -42,7 +42,6 @@ line: TOK_EOL
 
 
 keyword: TOK_DUP     { addKeyword(d16::OPCODES::DUP); }
-       | TOP_SWAP    { addKeyword(d16::OPCODES::SWAP); }
        | TOK_DROP    { addKeyword(d16::OPCODES::DROP); }
        | TOK_JMPZ    { addKeyword(d16::OPCODES::JMPZ); }
        | TOK_JMPNZ   { addKeyword(d16::OPCODES::JMPNZ); }
@@ -72,9 +71,13 @@ keyword: TOK_DUP     { addKeyword(d16::OPCODES::DUP); }
        | TOK_LSL     { addKeyword(d16::OPCODES::LSL); }
        | TOK_LSR     { addKeyword(d16::OPCODES::LSR); }
        | pick
+       | swap
        ;
 
 pick: TOK_PICK '(' TOK_NUMBER ')' { addPick( $3 ); }
+    ;
+
+swap: TOK_SWAP '(' TOK_NUMBER ')' { addSwap( $3 ); }
     ;
 
 directive: TOK_ORG TOK_NUMBER TOK_EOL { addOrg( $2 ); }

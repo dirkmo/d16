@@ -227,8 +227,8 @@ void setupTests(Test& tester) {
     );
     // 9 SWAP
     tester.addTest( (TestData) {
-            .cpu =  { .pc = 3, .D = { 1, 4 }, .R = { } },
-            .prog = { 4, 1, SWAP, HALT }
+            .cpu =  { .pc = 4, .D = { 1, 3, 2 }, .R = { } },
+            .prog = { 1, 2, 3, SWAP | 1, HALT }
         }
     );
     // 10 DROP
@@ -397,6 +397,18 @@ void setupTests(Test& tester) {
     tester.addTest( (TestData) {
             .cpu =  { .pc = 3, .D = { 0, 6, 0 }, .R = { } },
             .prog = { 0, 6, PICK|1, HALT }
+        }
+    );
+    // 38 SWAP die zweite
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 4, .D = { 3, 2, 1 }, .R = { } },
+            .prog = { 1, 2, 3, SWAP | 2, HALT }
+        }
+    );
+    // 39 SWAP die zweite
+    tester.addTest( (TestData) {
+            .cpu =  { .pc = 4, .D = { 1, 2, 3 }, .R = { } },
+            .prog = { 1, 2, 3, SWAP | 0, HALT }
         }
     );
 }

@@ -35,7 +35,7 @@ enum CONSTANTS {
     DST_RSP     = 7 << 4, // set return stack pointer
     DST_DS12    = 8 << 4, // set TOS, NOS (for NOS=alu, TOS=carry)
     DST_PC_RS   = 9 << 4, // push(R, pc), rs++, set 
-    DST_T_N     = 10 << 4, // swap N,T
+    DST_T_PICK  = 10 << 4, // swap T, D[idx]
     // alu
     ALU_ADD     = 0 << 0,
     ALU_ADC     = 1 << 0,
@@ -62,7 +62,7 @@ enum CONSTANTS {
 enum OPCODES {
     DUP    = OP | DSP_INC  | SRC_DTOS | DST_DS, // (n -- n n)
     PICK   = OP | DSP_INC  | SRC_PICK | DST_DS, // ( n -- n n )
-    SWAP   = OP | DST_T_N,
+    SWAP   = OP | DST_T_PICK | SRC_PICK,
     DROP   = OP | DSP_DEC  | SRC_DTOS | DST_DS1, // (n -- )
  
     JMPZ   = OP | DSP_DEC2 | SRC_JZ   | DST_PC, // (z a -- )

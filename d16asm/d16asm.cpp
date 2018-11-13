@@ -55,6 +55,16 @@ void addPick(uint8_t idx) {
     cmdlist.push_back(pick);
 }
 
+void addSwap(uint8_t idx) {
+    if(idx > 0xF ) {
+        printf("Invalid SWAP index %u\n",idx);
+        assert(idx < 0x10);
+    }
+    auto opcode = static_cast<d16::OPCODES>(static_cast<int>(d16::SWAP) + idx);
+    auto swap = new CmdKeyword(opcode);
+    cmdlist.push_back(swap);
+}
+
 int main( int argc, char **argv ) {
     printf("d16 cpu assembler\n");
     string outname = "d16output.s";
