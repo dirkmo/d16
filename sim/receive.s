@@ -36,11 +36,13 @@ sendbyte: ; ( n -- )
         ret
 
 push:   ; ( n -- )
+        ; fifo is full when last + 1 == first
+        first load last load 1 add sub push1 jmpz
         ; push to fifo
         last load buf add store
         ; last = (last+1) & 0x1F
         last load 1 add 0x1F and last store
-        ret
+push1:  ret
 
 pop:    ; ( -- dat success )
         ; first - last
