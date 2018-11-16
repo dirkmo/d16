@@ -132,7 +132,7 @@ class Test {
         return true;
     }
 
-    bool doTest(int idx) {
+    bool doTestcase(int idx) {
         printf("\n======Executing test %i======\n", idx);
         TestData& td = m_vTests[idx];
         mem.clear();
@@ -160,6 +160,46 @@ class Test {
         }
         printf("Simulation finished\n");
         return testResults(idx);
+    }
+
+    bool doResetTest() {
+        printf("\n======Executing reset test======\n");
+        vector<uint16_t> resetTestProg {
+0x0012, 0xc150, 0x0014, 0xc150, 0x0015, 0xc150, 0x0016, 0xc150, 
+0x0017, 0xc150, 0x0018, 0xc150, 0x0019, 0xc150, 0x001a, 0xc150, 
+0x001b, 0xc150, 0x0012, 0xc150, 0x9050, 0x9050, 0x9050, 0x9050, 
+0x9050, 0x9050, 0x9050, 0xffff, 
+        };
+        mem.clear();
+        mem.init(resetTestProg);
+        m_ptb->reset();
+        m_ptb->tick();
+        int icount = 0;
+        int interrupt = 0;
+        while(interrupt < 9 && icount < 20) {
+            if( isSimulationDone() ) {
+                break;
+            }
+
+            if( (icount % 5) == 0 && icount > 0 ) {
+                m_ptb->m_core->i_int = interrupt++;
+            }
+
+            if (m_ptb->m_core->d16__DOT__cpu_state == 1) {
+                printf("pc: %04X\n", m_ptb->m_core->d16__DOT__pc);
+            }
+            printf("%s\n", m_ptb->m_core->d16__DOT__cpu_state == 0 ? "RESET" :
+                    m_ptb->m_core->d16__DOT__cpu_state == 1 ? "FETCH" :
+                    m_ptb->m_core->d16__DOT__cpu_state == 2 ? "EXECUTE" :
+                    "INTERRUPT");
+            doCycle();
+
+            m_ptb->print_ds();
+            m_ptb->print_rs();
+            icount++;
+        }
+        printf("Simulation finished\n");
+        return false;
     }
 
     int testCount() { return m_vTests.size(); }
@@ -423,10 +463,14 @@ int main(int argc, char **argv, char **env) {
     Test Tester(tb);
     setupTests(Tester);
     for( int i=0; i<Tester.testCount(); i++) {
-        if( Tester.doTest(i) == false ) {
+        if( Tester.doTestcase(i) == false ) {
             printf("ERROR\n");
             return 1;
         }
+    }
+    if( Tester.doResetTest() == false ) {
+        printf("ERROR\n");
+        return 1;
     }
     printf("\nsuccess.\n");
     return 0;

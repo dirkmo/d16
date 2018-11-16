@@ -44,8 +44,6 @@ wire [15:0] pc1 = pc + 1;
 
 reg [15:0] ir;
 
-wire interrupt = i_int != 0;
-
 `define CPUSTATE_RESET 2'b00
 `define CPUSTATE_FETCH 2'b01
 `define CPUSTATE_EXECUTE 2'b10
@@ -83,6 +81,22 @@ assign o_wb_we   = cpu_state == `CPUSTATE_EXECUTE ? mem_write_access  : 1'b0;
 assign o_wb_cyc  = cpu_state == `CPUSTATE_EXECUTE ? mem_access :
                    cpu_state == `CPUSTATE_FETCH   ? 1'b1   : 1'b0;
 assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
+
+
+reg interrupt;
+reg [2:0] r_int;
+always @(posedge i_clk)
+begin
+    r_int <= i_int;
+    if( cpu_state == `CPUSTATE_INTERRUPT ) begin
+        interrupt <= 0;
+    end
+    if( r_int == 3'd0 && i_int != 0 ) begin
+        interrupt <= 1;
+        $display("Interrupt!");
+    end
+end
+
 
 // bus source selection
 assign bus[15:0] =
