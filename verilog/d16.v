@@ -16,7 +16,7 @@ module d16(
 
 input i_clk;
 input i_reset;
-input i_int;
+input [2:0] i_int;
 
 // wishbone wires
 input  [15:0] i_wb_dat;
@@ -44,9 +44,15 @@ wire [15:0] pc1 = pc + 1;
 
 reg [15:0] ir;
 
+wire interrupt = i_int != 0;
+
 `define CPUSTATE_RESET 2'b00
 `define CPUSTATE_FETCH 2'b01
 `define CPUSTATE_EXECUTE 2'b10
+`define CPUSTATE_INTERRUPT 2'b11
+
+// CALL opcode for interrupt
+`define IR_CALL 16'hC190
 
 reg [1:0] cpu_state;
 
@@ -103,6 +109,8 @@ always @(posedge i_clk)
 begin
     if( cpu_state == `CPUSTATE_FETCH ) begin
         ir <= i_wb_dat;
+    end else if( cpu_state == `CPUSTATE_INTERRUPT ) begin
+        ir <= `IR_CALL;
     end
 end
 
@@ -110,10 +118,10 @@ end
 always @(posedge i_clk)
 begin
     case ( cpu_state )
-        `CPUSTATE_RESET:   cpu_state <= `CPUSTATE_FETCH;
-        `CPUSTATE_FETCH:   cpu_state <= `CPUSTATE_EXECUTE;
-        `CPUSTATE_EXECUTE: cpu_state <= `CPUSTATE_FETCH;
-        default: cpu_state <= `CPUSTATE_RESET;
+        `CPUSTATE_RESET:     cpu_state <= `CPUSTATE_FETCH;
+        `CPUSTATE_FETCH:     cpu_state <= `CPUSTATE_EXECUTE;
+        `CPUSTATE_INTERRUPT: cpu_state <= `CPUSTATE_EXECUTE;
+        `CPUSTATE_EXECUTE:   cpu_state <= interrupt ? `CPUSTATE_INTERRUPT : `CPUSTATE_FETCH;
     endcase
     if ( i_reset ) begin
         cpu_state <= `CPUSTATE_RESET;
@@ -155,8 +163,10 @@ begin
                     D[ds_NOSidx] <= bus;
                 end
                 4'd9: if ( cond ) begin
-                    // only push address on RS when condition true
-                    R[rs_idx] <= pc1;
+                    // only push pc on RS when condition true
+                    // if interrupt, push current pc, if normal call/branch
+                    // instruction, push pc+1
+                    R[rs_idx] <= interrupt ? pc : pc1;
                     rs <= rs + 1'b1;
                     pc <= bus;
                 end
@@ -170,8 +180,10 @@ begin
             // immediate instruction
             D[ds_idx] <= { 1'b0, imm };
         end
-    end
-    if( cpu_state == `CPUSTATE_RESET ) begin
+    end else if( cpu_state == `CPUSTATE_INTERRUPT ) begin
+        // push interrupt vector onto the D stack
+        D[ds_TOSidx] <= { 12'd0, i_int[2:0], 1'b0 };
+    end else if( cpu_state == `CPUSTATE_RESET ) begin
         pc <= 16'd0;
         rs <= 7'd0;
     end
@@ -197,8 +209,11 @@ begin
             // immediate instruction
             ds <= ds + 1;
         end
-    end 
-    if( i_reset ) begin
+    end else if( cpu_state == `CPUSTATE_INTERRUPT ) begin
+        // on interrupt, the interrupt vector has to be pushed onto the D stack,
+        // prior to the EXECUTE state
+        ds <= ds + 1;
+    end else if( cpu_state == `CPUSTATE_RESET ) begin
         ds <= 7'd0;
     end
 end

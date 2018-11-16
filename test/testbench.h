@@ -39,6 +39,7 @@ public:
 			m_trace = new VerilatedVcdC;
 			m_core->trace(m_trace, 99);
 			m_trace->open(vcdname);
+            m_core->i_int = 0;
 		}
 	}
 
