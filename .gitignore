@@ -178,3 +178,8 @@ sim/verilator/Vtop_classes.mk
 sim/verilator/sim.d
 sim/verilator/verilated.d
 sim/verilator/verilated_vcd_c.d
+test/print_opcodes
+test/inttest.s.bin
+test/inttest.s.h
+test/inttest.s.map
+test/inttest.s.v
