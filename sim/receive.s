@@ -8,9 +8,9 @@ loop:
         receivebyte call
         
         ; if rec!=0 push()
-        push branz
+        fifopush branz
 
-        pop call
+        fifopop call
         loop1 jmpz ; if popresult == 0 goto loop1
 
         sendbyte call
@@ -35,30 +35,42 @@ sendbyte: ; ( n -- )
         uart_tx store
         ret
 
-push:   ; ( n -- )
-        ; fifo is full when last + 1 == first
-        first load last load 1 add sub push1 jmpz
-        ; push to fifo
-        last load buf add store
-        ; last = (last+1) & 0x1F
-        last load 1 add 0x1F and last store
-push1:  ret
+fifopush: ; ( d a -- ret )
+        ; get first idx
+        dup 1 add load ; d a first
+        ; get last idx
+        pick(1) 2 add load ; d a first last
+        ; last + 1
+        1 add ; d a first last+1
+        sub l1 jmpz ; if (first == last+1) goto l1
+        dup 1 add load ; d a last
+        pick(2) ; d a last d
+        swap(1) ; d a d last
+        store ; d a
+        dup 2 add dup load ; d a a+2 last
+        1 add 0x1F and; d a a+2 (last+1)&0x1F
+        swap(1) ; d a (last+1)&0x1F a+2
+        store ; d a
+        drop drop
+        1 ret
+l1:     drop drop
+        0 ret
 
-pop:    ; ( -- dat success )
-        ; first - last
-        first load last load sub pop1 jmpnz
-        ; no data avail
-        0 0 ; return value: no data
-        ret
-pop1:   ; data avail in fifo
-        first load buf add load
-        ; first = (first + 1) & 0x1F
-        first load 1 add 0x1F and first store
-        1 ; return value: data popped
-        ret
+fifopop: ; ( a -- d ret )
+        ; get first idx
+        dup 1 add load ; a first
+        ; get last idx
+        pick(1) 2 add load ; a first last
+        sub l2 jmpz ; a
+        dup 1 add load ; a first
+        load ; a d
+        swap(1) ; d a
+        1 add dup load ; d a+1 first
+        swap(1) ; d first a+1
+        store ; d
+        1 ret ; d 1
+l2:     drop
+        0 0 ret ; 0 0
 
-
-first: 0
-last: 0
-buf: .ds 32
+rxfifo: 0 0 .ds 32
 
