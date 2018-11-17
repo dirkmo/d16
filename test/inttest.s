@@ -10,13 +10,15 @@ int6: isr6 jmp
 int7: isr7 jmp
 int8: isr8 jmp
 
-main: main jmp
+main: 1 2 add drop main jmp
 
-isr1: ret
-isr2: ret
-isr3: ret
-isr4: ret
-isr5: ret
-isr6: ret
-isr7: ret
+.org 0x40
+
+isr1: 1 drop ret
+isr2: 2 drop ret
+isr3: 3 drop ret
+isr4: 4 drop ret
+isr5: 5 drop ret
+isr6: 6 drop ret
+isr7: 7 drop ret
 isr8: .dw 0xFFFF

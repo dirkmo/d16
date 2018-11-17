@@ -40,7 +40,8 @@ wire [5:0] rs_idx = rs[5:0];
 wire [5:0] rs_TOSidx = rs_idx - 1; // R TOS index
 
 reg [15:0] pc;
-wire [15:0] pc1 = pc + 1;
+wire [15:0] pc_plus_1 = pc + 1;
+wire [15:0] pc_minus_1 = pc - 1;
 
 reg [15:0] ir;
 
@@ -49,8 +50,8 @@ reg [15:0] ir;
 `define CPUSTATE_EXECUTE 2'b10
 `define CPUSTATE_INTERRUPT 2'b11
 
-// CALL opcode for interrupt
-`define IR_CALL 16'hC190
+// INT opcode for interrupt
+`define IR_INT 16'h8B90
 
 reg [1:0] cpu_state;
 
@@ -84,16 +85,18 @@ assign o_wb_addr = cpu_state == `CPUSTATE_EXECUTE ? D[ds_TOSidx] : pc;
 
 
 reg interrupt;
+reg [15:0] int_vector;
 reg [2:0] r_int;
 always @(posedge i_clk)
 begin
     r_int <= i_int;
-    if( cpu_state == `CPUSTATE_INTERRUPT ) begin
-        interrupt <= 0;
-    end
     if( r_int == 3'd0 && i_int != 0 ) begin
         interrupt <= 1;
-        $display("Interrupt!");
+        int_vector <= { 12'd0, i_int[2:0], 1'b0 };
+        //$display("---- Interrupt %d ----", i_int);
+    end
+    if( ir == `IR_INT && cpu_state == `CPUSTATE_EXECUTE ) begin
+        interrupt <= 0;
     end
 end
 
@@ -102,29 +105,29 @@ end
 assign bus[15:0] =
         src == 4'd0  ? R[rs_TOSidx] :
         src == 4'd1  ? T :
-        src == 4'd2  ? pc1 :
+        src == 4'd2  ? pc_plus_1 :
         src == 4'd3  ? { 9'd0, ds }:
         src == 4'd4  ? i_wb_dat :
         src == 4'd5  ? alu :
-        src == 4'd6  ? N == 16'd0 ? T : pc1 : // JMPZ
-        src == 4'd7  ? N[15] ? T : pc1 : // JMPL
+        src == 4'd6  ? N == 16'd0 ? T : pc_plus_1 : // JMPZ
+        src == 4'd7  ? N[15] ? T : pc_plus_1 : // JMPL
         src == 4'd8  ? N :
-        src == 4'd9  ? N == 16'd0 ? pc1 : T : // JMPNZ
+        src == 4'd9  ? N == 16'd0 ? pc_plus_1 : T : // JMPNZ
         src == 4'd10 ? D[pick_idx] : // PICK
+        src == 4'd11 ? int_vector : // INT
                       16'd0;
 
 // cond: used in dst block for conditional branches.
 // only push address on RS when cond == 1
-wire cond = (src == 4'd6) ? N == 16'd0 :
-            (src == 4'd7) ? N[15] : 1'b1;
+wire cond = (src == 4'd6) ? N == 16'd0 : // is zero?
+            (src == 4'd7) ? N[15] :      // is negative?
+                            1'b1;        // else true
 
 // instruction fetch
 always @(posedge i_clk)
 begin
     if( cpu_state == `CPUSTATE_FETCH ) begin
-        ir <= i_wb_dat;
-    end else if( cpu_state == `CPUSTATE_INTERRUPT ) begin
-        ir <= `IR_CALL;
+        ir <= interrupt ? `IR_INT : i_wb_dat;
     end
 end
 
@@ -134,8 +137,8 @@ begin
     case ( cpu_state )
         `CPUSTATE_RESET:     cpu_state <= `CPUSTATE_FETCH;
         `CPUSTATE_FETCH:     cpu_state <= `CPUSTATE_EXECUTE;
-        `CPUSTATE_INTERRUPT: cpu_state <= `CPUSTATE_EXECUTE;
-        `CPUSTATE_EXECUTE:   cpu_state <= interrupt ? `CPUSTATE_INTERRUPT : `CPUSTATE_FETCH;
+        `CPUSTATE_EXECUTE:   cpu_state <= `CPUSTATE_FETCH;
+        default:             cpu_state <= `CPUSTATE_FETCH;
     endcase
     if ( i_reset ) begin
         cpu_state <= `CPUSTATE_RESET;
@@ -177,10 +180,10 @@ begin
                     D[ds_NOSidx] <= bus;
                 end
                 4'd9: if ( cond ) begin
-                    // only push pc on RS when condition true
-                    // if interrupt, push current pc, if normal call/branch
+                    // only push pc on RS when condition true.
+                    // if interrupt, push pc-1, if normal call/branch
                     // instruction, push pc+1
-                    R[rs_idx] <= interrupt ? pc : pc1;
+                    R[rs_idx] <= interrupt ? pc : pc_plus_1;
                     rs <= rs + 1'b1;
                     pc <= bus;
                 end
@@ -194,9 +197,6 @@ begin
             // immediate instruction
             D[ds_idx] <= { 1'b0, imm };
         end
-    end else if( cpu_state == `CPUSTATE_INTERRUPT ) begin
-        // push interrupt vector onto the D stack
-        D[ds_TOSidx] <= { 12'd0, i_int[2:0], 1'b0 };
     end else if( cpu_state == `CPUSTATE_RESET ) begin
         pc <= 16'd0;
         rs <= 7'd0;
@@ -223,10 +223,6 @@ begin
             // immediate instruction
             ds <= ds + 1;
         end
-    end else if( cpu_state == `CPUSTATE_INTERRUPT ) begin
-        // on interrupt, the interrupt vector has to be pushed onto the D stack,
-        // prior to the EXECUTE state
-        ds <= ds + 1;
     end else if( cpu_state == `CPUSTATE_RESET ) begin
         ds <= 7'd0;
     end

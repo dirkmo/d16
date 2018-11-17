@@ -23,6 +23,7 @@ enum CONSTANTS {
     SRC_DNOS    = 8 << 8,
     SRC_JNZ     = 9 << 8, // conditional jump if not zero
     SRC_PICK    = 10 << 8,
+    SRC_INT     = 11 << 8, // interrupt vector from i_int[]
 
     // dst: destination register
     DST_RS      = 0 << 4, // push return stack element
@@ -36,6 +37,7 @@ enum CONSTANTS {
     DST_DS12    = 8 << 4, // set TOS, NOS (for NOS=alu, TOS=carry)
     DST_PC_RS   = 9 << 4, // push(R, pc), rs++, set 
     DST_T_PICK  = 10 << 4, // swap T, D[idx]
+    
     // alu
     ALU_ADD     = 0 << 0,
     ALU_ADC     = 1 << 0,
@@ -98,6 +100,8 @@ enum OPCODES {
     INV    = OP | SRC_ALU  | DST_DS1  | ALU_INV, // (n -- n),
     LSL    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_LSL, // (n n -- n),
     LSR    = OP | DSP_DEC  | SRC_ALU  | DST_DS2  | ALU_LSR, // (n n -- n),
+
+    INT    = OP | SRC_INT | DST_PC_RS,
 
     HALT = 0xFFFF
 };

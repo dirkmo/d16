@@ -32,7 +32,8 @@ uint16_t opcodes[] = {
     XOR,
     INV,
     LSL,
-    LSR
+    LSR,
+    INT
 };
 
 const char* names[] = {
@@ -65,7 +66,8 @@ const char* names[] = {
     "XOR",
     "INV",
     "LSL",
-    "LSR"
+    "LSR",
+    "INT",
 };
 
 int main() {
