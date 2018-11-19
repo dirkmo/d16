@@ -21,7 +21,7 @@ list<dwPayload> listPayload;
 %token TOK_BRAZ TOK_BRANZ TOK_BRAL TOK_CALL TOK_RET TOK_PUSHRS TOK_DROPRS
 %token TOK_POPRS TOK_LOAD TOK_STORE TOK_PUSHPC TOK_PUSHSP TOK_POPSP TOK_ADD
 %token TOK_ADC TOK_SUB TOK_SBC TOK_AND TOK_OR TOK_XOR TOK_INV TOK_LSL TOK_LSR
-%token TOK_PICK
+%token TOK_PICK TOK_MACRO TOK_MACROEND TOK_MACROARG
 
 %start S
 
@@ -33,9 +33,14 @@ S:
 
 
 line: TOK_EOL
+    | line keyword
+    | line TOK_NUMBER     { addNumber($2); }
+    | line TOK_LABEL      { addLabel($2); }
+    | line identifier
+    | line directive
     | keyword
-    | TOK_NUMBER     { addNumber($1); }
-    | TOK_LABEL      { addLabel($1); }
+    | TOK_NUMBER          { addNumber($1); }
+    | TOK_LABEL           { addLabel($1); }
     | identifier
     | directive
     ;
@@ -88,6 +93,7 @@ directive: TOK_ORG TOK_NUMBER TOK_EOL { addOrg( $2 ); }
          | TOK_DS TOK_NUMBER TOK_EOL  { addDs($2); }
          | equ
          | dw
+         | macro
          ;
 
 
@@ -107,6 +113,20 @@ dwdata: TOK_NUMBER                  { listPayload.push_back( dwPayload($1) ); }
       | dwdata ',' TOK_IDENTIFIER   { listPayload.push_back( dwPayload($3, dwPayload::Ident) ); }
       ;
 
+macro: TOK_MACRO TOK_IDENTIFIER macrocode TOK_MACROEND TOK_EOL { printf("macro %s\n", $2); }
+     ;
+
+macroline: TOK_EOL
+         | keyword
+         | TOK_NUMBER
+         | TOK_LABEL
+         | identifier
+         | directive
+         ;
+
+macrocode: macroline
+         | macrocode line
+         ;
 %%
 
 void yyerror(char *s, ...) {

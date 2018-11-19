@@ -10,6 +10,8 @@
 \.equ               { return TOK_EQU; }
 \.dw                { return TOK_DW; }
 \.ds                { return TOK_DS; }
+\.macro             { return TOK_MACRO; }
+\.endmacro          { return TOK_MACROEND; }
 
 dup                 { return TOK_DUP; }
 pick                { return TOK_PICK; }
@@ -53,6 +55,7 @@ lsr                 { return TOK_LSR; }
 ;.*\n
 \".*\"              { yylval.s = strdup(yytext); return TOK_LITERAL; }
 [ \t]
+\\[0-9]             { return TOK_MACROARG; }
 .                   { printf("Unknown: '%s' (%d)\n", yytext, yytext[0]); }
 %%
 
