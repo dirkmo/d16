@@ -9,7 +9,7 @@ list<dwPayload> listPayload;
 	long l;
 	char *s;
 }
-
+%define api.prefix {yy} /*prefix for multiple parsers*/
 %token <l> TOK_NUMBER
 %token <s> TOK_IDENTIFIER TOK_LITERAL TOK_LABEL
 %token TOK_EOL
