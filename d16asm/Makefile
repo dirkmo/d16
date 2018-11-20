@@ -3,7 +3,7 @@
 CPPFLAGS=-std=c++14 -Wall -g3
 LEXFLAGS=-Wno-sign-compare -Wno-write-strings -Wno-unused-function -Wno-deprecated-register
 
-CPPFILES=d16asm.lex.cpp assemble.cpp d16asm.cpp d16asm.tab.cpp opcodes.cpp
+CPPFILES=d16asm.lex.cpp assemble.cpp d16asm.cpp opcodes.cpp d16asm.tab.cpp
 OBJFILES := $(CPPFILES:.cpp=.o)
 
 .cpp.o:

@@ -1,7 +1,15 @@
 %option noyywrap nodefault yylineno case-insensitive
+
+%s MACRO
+
 %{
-#include <stdlib.h>
+#include <cstdlib>
+#include <string>
+#include <list>
 #include "d16asm.tab.hpp"
+
+using namespace std;
+list<string> lMacros;
 %}
 
 %%
@@ -10,9 +18,6 @@
 \.equ               { return TOK_EQU; }
 \.dw                { return TOK_DW; }
 \.ds                { return TOK_DS; }
-\.macro             { return TOK_MACRO; }
-\.endmacro          { return TOK_MACROEND; }
-
 dup                 { return TOK_DUP; }
 pick                { return TOK_PICK; }
 swap                { return TOK_SWAP; }
@@ -55,7 +60,6 @@ lsr                 { return TOK_LSR; }
 ;.*\n
 \".*\"              { yylval.s = strdup(yytext); return TOK_LITERAL; }
 [ \t]
-\\[0-9]             { return TOK_MACROARG; }
 .                   { printf("Unknown: '%s' (%d)\n", yytext, yytext[0]); }
 %%
 
