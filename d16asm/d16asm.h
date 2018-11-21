@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include <assert.h>
+#include <iostream>
 #include "opcodes.h"
 
 using namespace std;
@@ -278,6 +279,15 @@ public:
     }
 
     list<dwPayload> payload;
+};
+
+class Macro {
+public:
+    Macro( string _name ) : name(_name) {
+        cout << "New Macro: " << name << endl;
+    }
+    
+    string name;
 };
 
 void addIdentifier(string name, int16_t offset);

@@ -4,12 +4,8 @@
 
 %{
 #include <cstdlib>
-#include <string>
-#include <list>
 #include "d16asm.tab.hpp"
 
-using namespace std;
-list<string> lMacros;
 %}
 
 %%
@@ -18,6 +14,8 @@ list<string> lMacros;
 \.equ               { return TOK_EQU; }
 \.dw                { return TOK_DW; }
 \.ds                { return TOK_DS; }
+\.macro             { BEGIN MACRO; }
+\.endmacro          { BEGIN INITIAL; }
 dup                 { return TOK_DUP; }
 pick                { return TOK_PICK; }
 swap                { return TOK_SWAP; }
@@ -50,6 +48,7 @@ inv                 { return TOK_INV; }
 lsl                 { return TOK_LSL; }
 lsr                 { return TOK_LSR; }
 
+<MACRO>[A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); return TOK_MACRO; }
 ^[A-Z_][A-Z0-9_]+:  { yylval.s = strdup(yytext); return TOK_LABEL; }
 [A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); return TOK_IDENTIFIER; }
 [-+]?0x[0-9A-Z]+    { yylval.l = strtol(yytext, NULL, 16); return TOK_NUMBER; }

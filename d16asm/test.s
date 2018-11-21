@@ -1,6 +1,13 @@
 ; uart test
 .equ uart 0xFF00
 
+.macro write
+store load uart
+dup 1
+and
+or
+.endmacro
+
 .org 0
 
 msg print call

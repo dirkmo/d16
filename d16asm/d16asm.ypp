@@ -2,6 +2,7 @@
 #include "d16asm.h"
 
 list<dwPayload> listPayload;
+list<Macro> lMacros;
 
 %}
 
@@ -11,10 +12,10 @@ list<dwPayload> listPayload;
 }
 
 %token <l> TOK_NUMBER
-%token <s> TOK_IDENTIFIER TOK_LITERAL TOK_LABEL
+%token <s> TOK_IDENTIFIER TOK_LITERAL TOK_LABEL TOK_MACRO
 %token TOK_EOL
 /* directives */
-%token TOK_ORG TOK_EQU TOK_DW TOK_DS TOK_MACRO
+%token TOK_ORG TOK_EQU TOK_DW TOK_DS
 /* keywords */
 
 %token TOK_DUP TOK_SWAP TOK_DROP TOK_JMPZ TOK_JMPNZ TOK_JMPL TOK_JMP
@@ -88,6 +89,7 @@ directive: TOK_ORG TOK_NUMBER TOK_EOL { addOrg( $2 ); }
          | TOK_DS TOK_NUMBER TOK_EOL  { addDs($2); }
          | equ
          | dw
+         | macro
          ;
 
 
@@ -107,6 +109,8 @@ dwdata: TOK_NUMBER                  { listPayload.push_back( dwPayload($1) ); }
       | dwdata ',' TOK_IDENTIFIER   { listPayload.push_back( dwPayload($3, dwPayload::Ident) ); }
       ;
 
+macro: TOK_MACRO { lMacros.push_back(Macro($1)); }
+     ;
 %%
 
 void yyerror(char *s, ...) {
