@@ -1,6 +1,6 @@
 %option noyywrap nodefault yylineno case-insensitive
 
-%s MACRO
+%s MACRONAME MACRO
 
 %{
 #include <cstdlib>
@@ -14,8 +14,8 @@
 \.equ               { return TOK_EQU; }
 \.dw                { return TOK_DW; }
 \.ds                { return TOK_DS; }
-\.macro             { BEGIN MACRO; }
-\.endmacro          { BEGIN INITIAL; }
+\.macro             { BEGIN MACRONAME; }
+\.endmacro          { BEGIN INITIAL; return TOK_MACROEND; }
 dup                 { return TOK_DUP; }
 pick                { return TOK_PICK; }
 swap                { return TOK_SWAP; }
@@ -48,11 +48,12 @@ inv                 { return TOK_INV; }
 lsl                 { return TOK_LSL; }
 lsr                 { return TOK_LSR; }
 
-<MACRO>[A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); return TOK_MACRO; }
+<MACRONAME>[A-Z_][A-Z0-9_]+    { BEGIN MACRO; yylval.s = strdup(yytext); return TOK_MACRO; }
+<MACRO>\\[1-9]      { yylval.s = strdup(yytext); return TOK_MACROARG; }
 ^[A-Z_][A-Z0-9_]+:  { yylval.s = strdup(yytext); return TOK_LABEL; }
-[A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); return TOK_IDENTIFIER; }
-[-+]?0x[0-9A-Z]+    { yylval.l = strtol(yytext, NULL, 16); return TOK_NUMBER; }
-[-+]?[0-9]+         { yylval.l = strtol(yytext, NULL, 10); return TOK_NUMBER; }
+[A-Z_][A-Z0-9_]+    { yylval.s = strdup(yytext); printf("ident: %s\n", yytext); return TOK_IDENTIFIER; }
+[-+]?0x[0-9A-Z]+    { yylval.l = strtol(yytext, NULL, 16); printf("number: %s\n", yytext); return TOK_NUMBER; }
+[-+]?[0-9]+         { yylval.l = strtol(yytext, NULL, 10); printf("number: %s\n", yytext);return TOK_NUMBER; }
 [\-\+\*\/\(\),]     { return yytext[0]; }
 \n                  { return TOK_EOL; }
 \/\/.*

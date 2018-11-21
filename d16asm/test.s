@@ -2,10 +2,8 @@
 .equ uart 0xFF00
 
 .macro write
-store load uart
-dup 1
-and
-or
+1 2 add 3 sub
+drop
 .endmacro
 
 .org 0
