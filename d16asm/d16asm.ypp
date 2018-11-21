@@ -91,7 +91,8 @@ directive: TOK_ORG TOK_NUMBER TOK_EOL { addOrg( $2 ); }
          | TOK_DS TOK_NUMBER TOK_EOL  { addDs($2); }
          | equ
          | dw
-         | macro
+         | TOK_MACRO { lMacros.push_back(Macro($1)); bMacro = true; }
+         | TOK_MACROEND { if(!bMacro) { } bMacro = false; }
          ;
 
 
@@ -111,16 +112,6 @@ dwdata: TOK_NUMBER                  { listPayload.push_back( dwPayload($1) ); }
       | dwdata ',' TOK_IDENTIFIER   { listPayload.push_back( dwPayload($3, dwPayload::Ident) ); }
       ;
 
-macro: TOK_MACRO { lMacros.push_back(Macro($1)); bMacro = true; } macrodata { bMacro = false; }
-     ;
-
-macrodata: TOK_LITERAL macrodata { printf("%s\n", $1); }
-         | TOK_EOL macrodata
-         | TOK_IDENTIFIER macrodata { printf("%s\n", $1); }
-         | TOK_NUMBER macrodata { printf("%ld\n",$1); }
-         | TOK_MACROARG macrodata { printf("%s\n",$1); }
-         | TOK_MACROEND
-         ;
 %%
 
 void yyerror(char *s, ...) {

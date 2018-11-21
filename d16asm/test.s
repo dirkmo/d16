@@ -2,8 +2,8 @@
 .equ uart 0xFF00
 
 .macro write
-1 2 add 3 sub
-drop
+\1 2 add 3 sub
+dup drop
 .endmacro
 
 .org 0
